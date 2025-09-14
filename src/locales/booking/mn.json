@@ -1,0 +1,22 @@
+{
+  "booking": {
+    "title": "Хичээлийн цаг захиалах",
+    "subtitle": "Багш болон хичээлийн төрлөө сонгоно уу.",
+    "select_teacher": "Багш сонгох",
+    "search_teacher_placeholder": "Багшийн нэрээр хайх...",
+    "no_teachers_found": "Таны хайлтын шалгуурт тохирох багш олдсонгүй.",
+    "session_details": "Хичээлийн дэлгэрэнгүй",
+    "selected_teacher": "Сонгосон багш",
+    "none_selected": "Сонгогдоогүй",
+    "session_type": "Хичээлийн төрөл",
+    "one_on_one": "Ганцаарчилсан",
+    "class_session": "Ангийн хичээл",
+    "note_for_teacher": "Багшид үлдээх тэмдэглэл",
+    "note_placeholder": "Жишээ нь: тусгай сэдэв, сургалтын хэв маяг...",
+    "contact_number": "Холбоо барих дугаар",
+    "contact_number_placeholder": "Жишээ нь: +976 99112233",
+    "book_session": "Цаг захиалах",
+    "select_teacher_alert": "Захиалга хийхээс өмнө багш сонгоно уу.",
+    "booking_success_alert": "Таны {{teacherName}} багштай хичээлийн цаг амжилттай захиалагдлаа!"
+  }
+}

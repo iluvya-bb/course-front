@@ -1,0 +1,22 @@
+{
+  "booking": {
+    "title": "Book a Teaching Session",
+    "subtitle": "Choose your teacher and session type.",
+    "select_teacher": "Select a Teacher",
+    "search_teacher_placeholder": "Search teachers by name...",
+    "no_teachers_found": "No teachers found matching your criteria.",
+    "session_details": "Session Details",
+    "selected_teacher": "Selected Teacher",
+    "none_selected": "None selected",
+    "session_type": "Session Type",
+    "one_on_one": "One-on-One",
+    "class_session": "Class Session",
+    "note_for_teacher": "Note for Teacher",
+    "note_placeholder": "e.g., specific topics to cover, preferred learning style...",
+    "contact_number": "Contact Number",
+    "contact_number_placeholder": "e.g., +976 99112233",
+    "book_session": "Book Session",
+    "select_teacher_alert": "Please select a teacher before booking.",
+    "booking_success_alert": "Your session with {{teacherName}} has been successfully requested!"
+  }
+}

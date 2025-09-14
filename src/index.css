@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.btn, button {
+  border: 1px solid black;
+}
