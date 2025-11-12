@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Award, Users, Video } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -21,25 +22,26 @@ const stagger = {
   },
 };
 
-const benefits = [
-  {
-    title: "Expert Instructors",
-    description: "Learn from industry leaders and certified professionals.",
-    icon: <Award className="w-10 h-10" />,
-  },
-  {
-    title: "Flexible Learning",
-    description: "Access courses anytime, anywhere, on any device.",
-    icon: <Video className="w-10 h-10" />,
-  },
-  {
-    title: "Community Support",
-    description: "Join a vibrant community of learners and mentors.",
-    icon: <Users className="w-10 h-10" />,
-  },
-];
-
 const WhyChooseUsSection = () => {
+  const { t } = useTranslation();
+
+  const benefits = [
+    {
+      title: t("why_choose_us.expert_instructors_title"),
+      description: t("why_choose_us.expert_instructors_desc"),
+      icon: <Award className="w-10 h-10" />,
+    },
+    {
+      title: t("why_choose_us.flexible_learning_title"),
+      description: t("why_choose_us.flexible_learning_desc"),
+      icon: <Video className="w-10 h-10" />,
+    },
+    {
+      title: t("why_choose_us.community_support_title"),
+      description: t("why_choose_us.community_support_desc"),
+      icon: <Users className="w-10 h-10" />,
+    },
+  ];
   return (
     <section id="why-choose-us" className="py-24 bg-neutral">
       <div className="container mx-auto px-6">
@@ -50,7 +52,7 @@ const WhyChooseUsSection = () => {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-black text uppercase">Why Choose Us?</h2>
+          <h2 className="text-4xl font-black text uppercase">{t("why_choose_us.title")}</h2>
         </motion.div>
         <motion.div
           className="grid md:grid-cols-3 gap-8"

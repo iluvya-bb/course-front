@@ -13,7 +13,7 @@ const Button = React.forwardRef(
           variant === "primary" &&
           "bg-primary text-neutral shadow-[4px_4px_0px_#1A1A1A] hover:shadow-none transform hover:translate-x-1 hover:translate-y-1",
           variant === "secondary" &&
-          "bg-neutral text-white border-2 border-primary hover:bg-primary hover:text-neutral",
+          "bg-neutral border-2 border-primary hover:bg-primary hover:text-neutral",
           className,
         )}
         ref={ref}

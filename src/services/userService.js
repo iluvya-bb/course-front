@@ -16,12 +16,18 @@ export const logout = () => {
   localStorage.removeItem("token");
 };
 
-export const getCurrentUser = () => {
+export const getCurrentUser = async () => {
   const token = localStorage.getItem("token");
   if (token) {
-    // In a real application, you would decode the token to get user info
-    // For this example, we'll just return a mock user object
-    return { name: "User" };
+    try {
+      const response = await api.get("/auth/me");
+      return response.data.data;
+    } catch (error) {
+      console.error("Failed to get current user:", error);
+      // If token is invalid, remove it
+      localStorage.removeItem("token");
+      return null;
+    }
   }
   return null;
 };
