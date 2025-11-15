@@ -91,10 +91,20 @@ const API = {
 	getBookings: (params) => axiosInstance.get("/bookings", { params }),
 	createBooking: (data) => axiosInstance.post("/bookings", data),
 	getBooking: (id) => axiosInstance.get(`/bookings/${id}`),
-	acceptBooking: (id) => axiosInstance.put(`/bookings/${id}/accept`),
+	acceptBooking: (id, data) => axiosInstance.put(`/bookings/${id}/accept`, data),
 	payForBooking: (id, data) => axiosInstance.put(`/bookings/${id}/pay`, data),
 	cancelBooking: (id) => axiosInstance.put(`/bookings/${id}/cancel`),
 	completeBooking: (id) => axiosInstance.put(`/bookings/${id}/complete`),
+
+	// --- Teacher Availability ---
+	getTeacherAvailability: (teacherId) =>
+		axiosInstance.get(`/teachers/${teacherId}/availability`),
+	getTeacherBlockedDates: (teacherId) =>
+		axiosInstance.get(`/teachers/${teacherId}/blocked-dates`),
+	getAvailableSlots: (teacherId, params) =>
+		axiosInstance.get(`/teachers/${teacherId}/available-slots`, { params }),
+	checkAvailability: (teacherId, params) =>
+		axiosInstance.get(`/teachers/${teacherId}/check-availability`, { params }),
 
 	// --- Promo Codes (from promocode.js) ---
 	validatePromoCode: (data) => axiosInstance.post("/promocodes/validate", data),

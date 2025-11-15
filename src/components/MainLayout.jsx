@@ -20,12 +20,12 @@ const MainLayout = () => {
       try {
         const response = await API.getParameters();
         const params = response.data.data || [];
-        const logoParam = params.find(p => p.key === 'logo');
+        const logoParam = params.find((p) => p.key === "logo");
         if (logoParam && logoParam.value) {
           setLogo(`${API_URL}/${logoParam.value}`);
         }
       } catch (error) {
-        console.error('Failed to fetch logo:', error);
+        console.error("Failed to fetch logo:", error);
       }
     };
     fetchLogo();

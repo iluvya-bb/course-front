@@ -72,7 +72,7 @@ const BookingPage = () => {
 			console.error("Booking failed:", err);
 			setError(
 				err.response?.data?.error ||
-					t("error_booking_failed", { ns: "booking" }),
+				t("error_booking_failed", { ns: "booking" }),
 			);
 		} finally {
 			setIsBooking(false);
@@ -121,7 +121,7 @@ const BookingPage = () => {
 							disabled={isBooking || teachers.length === 0}
 						>
 							<option value="" disabled>
-								{t("choose_teacher", { ns: "booking" })}
+								{t("booking.choose_teacher")}
 							</option>
 							{teachers.map((teacher) => (
 								<option key={teacher.id} value={teacher.id}>
@@ -151,7 +151,7 @@ const BookingPage = () => {
 						required
 						className="input input-bordered w-full bg-base-200 rounded disabled:bg-gray-200"
 						disabled={isBooking}
-						// min={new Date().toISOString().slice(0, 16)} // Optional: prevent past dates
+					// min={new Date().toISOString().slice(0, 16)} // Optional: prevent past dates
 					/>
 					<p className="text-xs text-gray-500 mt-1">
 						{t("booking.time_notice")}

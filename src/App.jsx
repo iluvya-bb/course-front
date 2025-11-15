@@ -8,11 +8,10 @@ import AccountPage from "./components/AccountPage"; // For Login/Signup
 import DashboardPage from "./components/DashboardPage";
 import SettingsPage from "./components/SettingsPage";
 import LandingPage from "./components/LandingPage";
-import BookingPage from "./components/BookingPage";
+import BookingPageEnhanced from "./components/BookingPageEnhanced";
+import MyBookingsPage from "./components/MyBookingsPage";
 import MainLayout from "./components/MainLayout";
 import CoursePage from "./components/CoursePage";
-import LoginPage from "./components/LoginPage"; // Likely replaced by AccountPage
-import RegisterPage from "./components/RegisterPage"; // Likely replaced by AccountPage
 import PrivateRoute from "./components/PrivateRoute"; // Protects routes needing login
 import ProfilePage from "./components/ProfilePage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
@@ -28,8 +27,8 @@ function App() {
 					<Route path="/" element={<LandingPage />} />
 					{/* Use AccountPage for both Login and Register */}
 					<Route path="/account" element={<AccountPage />} />
-					<Route path="/login" element={<LoginPage />} />
-					<Route path="/register" element={<RegisterPage />} />
+					<Route path="/login" element={<AccountPage />} />
+					<Route path="/register" element={<AccountPage />} />
 
 					{/* --- Private Routes (Require Login) --- */}
 					{/* Wrap protected routes with PrivateRoute */}
@@ -40,7 +39,8 @@ function App() {
 							<Route path="/dashboard" element={<DashboardPage />} />
 							<Route path="/course" element={<DashboardPage />} />
 							<Route path="/settings" element={<SettingsPage />} />
-							<Route path="/book" element={<BookingPage />} />
+							<Route path="/book" element={<BookingPageEnhanced />} />
+							<Route path="/my-bookings" element={<MyBookingsPage />} />
 							<Route path="/course/:courseId" element={<CoursePage />} />
 							<Route path="/profile" element={<ProfilePage />} />
 						</Route>
