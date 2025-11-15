@@ -3,7 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import { FaSpinner, FaCalendarAlt, FaUserTie, FaClock, FaMapMarkerAlt } from "react-icons/fa";
+import {
+	FaSpinner,
+	FaCalendarAlt,
+	FaUserTie,
+	FaClock,
+	FaMapMarkerAlt,
+} from "react-icons/fa";
 import API from "../services/api";
 import BookingConfirmationModal from "./BookingConfirmationModal";
 import Toast from "./Toast";
@@ -66,11 +72,19 @@ const BookingPageEnhanced = () => {
 			});
 			setAvailableSlots(response.data.data || []);
 			if (response.data.data.length === 0) {
-				setError(t("booking.no_slots_available", { defaultValue: "Энэ өдөр боломжтой цаг байхгүй байна." }));
+				setError(
+					t("booking.no_slots_available", {
+						defaultValue: "Энэ өдөр боломжтой цаг байхгүй байна.",
+					}),
+				);
 			}
 		} catch (err) {
 			console.error("Failed to fetch slots:", err);
-			setError(t("booking.error_fetch_slots", { defaultValue: "Цагийн хуваарь татахад алдаа гарлаа." }));
+			setError(
+				t("booking.error_fetch_slots", {
+					defaultValue: "Цагийн хуваарь татахад алдаа гарлаа.",
+				}),
+			);
 		} finally {
 			setLoadingSlots(false);
 		}
@@ -87,7 +101,9 @@ const BookingPageEnhanced = () => {
 		}
 
 		// Get selected teacher object
-		const teacher = teachers.find(t => t.id === parseInt(selectedTeacherId, 10));
+		const teacher = teachers.find(
+			(t) => t.id === parseInt(selectedTeacherId, 10),
+		);
 		setSelectedTeacher(teacher);
 
 		// Show confirmation modal
@@ -116,7 +132,10 @@ const BookingPageEnhanced = () => {
 
 			const response = await API.createBooking(bookingData);
 			setToast({
-				message: t("booking_successful", { ns: "booking", defaultValue: "Захиалга амжилттай үүслээ!" }),
+				message: t("booking_successful", {
+					ns: "booking",
+					defaultValue: "Захиалга амжилттай үүслээ!",
+				}),
 				type: "success",
 			});
 			setShowConfirmation(false);
@@ -138,7 +157,10 @@ const BookingPageEnhanced = () => {
 			console.error("Booking failed:", err);
 			setError(
 				err.response?.data?.error ||
-				t("error_booking_failed", { ns: "booking", defaultValue: "Захиалга үүсгэхэд алдаа гарлаа." }),
+				t("error_booking_failed", {
+					ns: "booking",
+					defaultValue: "Захиалга үүсгэхэд алдаа гарлаа.",
+				}),
 			);
 			setShowConfirmation(false);
 		} finally {
@@ -149,7 +171,7 @@ const BookingPageEnhanced = () => {
 	// Get minimum date (today)
 	const getMinDate = () => {
 		const today = new Date();
-		return today.toISOString().split('T')[0];
+		return today.toISOString().split("T")[0];
 	};
 
 	return (
@@ -182,7 +204,11 @@ const BookingPageEnhanced = () => {
 					{loadingTeachers ? (
 						<div className="flex items-center text-gray-500">
 							<FaSpinner className="animate-spin mr-2" />
-							{t("loading_teachers", { ns: "booking", defaultValue: "Багш нар ачааллаж байна" })}...
+							{t("loading_teachers", {
+								ns: "booking",
+								defaultValue: "Багш нар ачааллаж байна",
+							})}
+							...
 						</div>
 					) : (
 						<select
@@ -198,7 +224,9 @@ const BookingPageEnhanced = () => {
 							disabled={isBooking || teachers.length === 0}
 						>
 							<option value="" disabled>
-								{t("booking.choose_teacher", { defaultValue: "Багш сонгоно уу" })}
+								{t("booking.choose_teacher", {
+									defaultValue: "Багш сонгоно уу",
+								})}
 							</option>
 							{teachers.map((teacher) => (
 								<option key={teacher.id} value={teacher.id}>
@@ -235,7 +263,10 @@ const BookingPageEnhanced = () => {
 				<div>
 					<Label htmlFor="duration" className="flex items-center mb-2">
 						<FaClock className="mr-2 text-gray-500" />
-						{t("duration_minutes", { ns: "booking", defaultValue: "Хичээлийн үргэлжлэх хугацаа" })}
+						{t("duration_minutes", {
+							ns: "booking",
+							defaultValue: "Хичээлийн үргэлжлэх хугацаа",
+						})}
 						<span className="text-red-500 ml-1">*</span>
 					</Label>
 					<select
@@ -262,13 +293,18 @@ const BookingPageEnhanced = () => {
 					<div>
 						<Label className="flex items-center mb-2">
 							<FaClock className="mr-2 text-gray-500" />
-							{t("booking.available_slots", { defaultValue: "Боломжтой цагууд" })}
+							{t("booking.available_slots", {
+								defaultValue: "Боломжтой цагууд",
+							})}
 							<span className="text-red-500 ml-1">*</span>
 						</Label>
 						{loadingSlots ? (
 							<div className="flex items-center text-gray-500 p-4 border rounded">
 								<FaSpinner className="animate-spin mr-2" />
-								{t("booking.loading_slots", { defaultValue: "Цагууд ачааллаж байна" })}...
+								{t("booking.loading_slots", {
+									defaultValue: "Цагууд ачааллаж байна",
+								})}
+								...
 							</div>
 						) : availableSlots.length > 0 ? (
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -279,11 +315,10 @@ const BookingPageEnhanced = () => {
 											key={index}
 											type="button"
 											onClick={() => setSelectedSlot(slotValue)}
-											className={`p-3 border rounded text-sm font-medium transition ${
-												selectedSlot === slotValue
+											className={`p-3 border rounded text-sm font-medium transition ${selectedSlot === slotValue
 													? "bg-indigo-600 text-white border-indigo-600"
 													: "bg-white text-gray-700 border-gray-300 hover:border-indigo-400"
-											}`}
+												}`}
 										>
 											{slotValue}
 										</button>
@@ -292,7 +327,9 @@ const BookingPageEnhanced = () => {
 							</div>
 						) : (
 							<p className="text-gray-500 p-4 border rounded">
-								{t("booking.no_slots_today", { defaultValue: "Энэ өдөр боломжтой цаг байхгүй байна." })}
+								{t("booking.no_slots_today", {
+									defaultValue: "Энэ өдөр боломжтой цаг байхгүй байна.",
+								})}
 							</p>
 						)}
 					</div>
@@ -311,7 +348,9 @@ const BookingPageEnhanced = () => {
 						value={location}
 						onChange={(e) => setLocation(e.target.value)}
 						required
-						placeholder={t("booking.location_placeholder", { defaultValue: "Хичээлийн байршил оруулна уу" })}
+						placeholder={t("booking.location_placeholder", {
+							defaultValue: "Хичээлийн байршил оруулна уу",
+						})}
 						className="input input-bordered w-full bg-base-200 rounded disabled:bg-gray-200"
 						disabled={isBooking}
 					/>
@@ -351,13 +390,17 @@ const BookingPageEnhanced = () => {
 
 				{/* Notes */}
 				<div>
-					<Label htmlFor="notes">{t("notes", { ns: "booking", defaultValue: "Тэмдэглэл" })}</Label>
+					<Label htmlFor="notes">
+						{t("notes", { ns: "booking", defaultValue: "Тэмдэглэл" })}
+					</Label>
 					<textarea
 						id="notes"
 						value={notes}
 						onChange={(e) => setNotes(e.target.value)}
 						rows="3"
-						placeholder={t("booking.notes_placeholder", { defaultValue: "Нэмэлт мэдээлэл..." })}
+						placeholder={t("booking.notes_placeholder", {
+							defaultValue: "Нэмэлт мэдээлэл...",
+						})}
 						className="textarea textarea-bordered w-full bg-base-200 rounded disabled:bg-gray-200"
 						disabled={isBooking}
 					/>
@@ -378,8 +421,12 @@ const BookingPageEnhanced = () => {
 					>
 						{isBooking && <FaSpinner className="animate-spin mr-2" />}
 						{isBooking
-							? t("booking.booking_submitting", { defaultValue: "Илгээж байна..." })
-							: t("booking.submit_booking_request", { defaultValue: "Захиалга илгээх" })}
+							? t("booking.booking_submitting", {
+								defaultValue: "Илгээж байна...",
+							})
+							: t("booking.submit_booking_request", {
+								defaultValue: "Захиалга илгээх",
+							})}
 					</Button>
 				</div>
 			</form>

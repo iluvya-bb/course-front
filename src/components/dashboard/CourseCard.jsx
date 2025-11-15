@@ -88,15 +88,12 @@ const CourseCard = ({ course, onSubscribe }) => {
 										? `${course.price}₮`
 										: t("free", { ns: "translation" })}
 								</p>
-								<Button
-									onClick={(e) => {
-										e.stopPropagation();
-										e.preventDefault();
-										onSubscribe(course);
-									}}
-								>
-									{t("dashboard.subscribe", { ns: "translation" })}
-								</Button>
+
+								<Link to={`/course/${course.id}`} className="block">
+									<Button>
+										{t("dashboard.subscribe", { ns: "translation" })}
+									</Button>
+								</Link>
 							</div>
 						)}
 					</div>

@@ -25,7 +25,8 @@ import SubscriptionModal from "./dashboard/SubscriptionModal";
 
 const CoursePage = () => {
 	// --- Core Hooks ---
-	const { t } = useTranslation(["translation", "course", "course_page"]);
+	const { t } = useTranslation(["translation", "course_page"]);
+	console.log(t);
 	const { courseId } = useParams();
 	const videoRef = useRef(null);
 	const hlsRef = useRef(null); // Store HLS instance for quality control
@@ -112,8 +113,8 @@ const CoursePage = () => {
 				console.error("Failed to fetch course data:", error);
 				setError(
 					error.response?.data?.error ||
-						error.message ||
-						t("error_fetching_course", { ns: "course_page" }),
+					error.message ||
+					t("error_fetching_course", { ns: "course_page" }),
 				);
 			} finally {
 				setLoading(false);
@@ -249,7 +250,7 @@ const CoursePage = () => {
 	const displayPrice = useMemo(
 		() =>
 			promoCodeValidation.status === "valid" &&
-			promoCodeValidation.discountedPrice !== null
+				promoCodeValidation.discountedPrice !== null
 				? promoCodeValidation.discountedPrice
 				: course?.price, // Use optional chaining for safety
 		[
@@ -327,7 +328,7 @@ const CoursePage = () => {
 				console.error("Failed to submit exercise:", error);
 				alert(
 					error.response?.data?.error ||
-						t("error_submitting_exercise", { ns: "course_page" }),
+					t("error_submitting_exercise", { ns: "course_page" }),
 				);
 			} finally {
 				setSubmittingExercise(null);
@@ -587,11 +588,10 @@ const CoursePage = () => {
 										<li key={lesson.id}>
 											<button
 												onClick={() => handleSelectLesson(lesson)}
-												className={`w-full text-left p-3 rounded-lg transition-colors duration-150 flex items-center justify-between ${
-													isSelected
+												className={`w-full text-left p-3 rounded-lg transition-colors duration-150 flex items-center justify-between ${isSelected
 														? "bg-primary text-primary-content font-semibold"
 														: "hover:bg-base-300 text-base-content"
-												}`}
+													}`}
 											>
 												<span className="truncate pr-2">
 													{index + 1}. {lesson.title}
@@ -686,13 +686,16 @@ const CoursePage = () => {
 												</span>
 												<select
 													value={currentQuality}
-													onChange={(e) => handleQualityChange(parseInt(e.target.value))}
+													onChange={(e) =>
+														handleQualityChange(parseInt(e.target.value))
+													}
 													className="px-3 py-1 border-2 border-neutral bg-base-100 text-base-content rounded-md shadow-[2px_2px_0px_#1A1A1A] focus:outline-none focus:ring-2 focus:ring-primary"
 												>
 													<option value={-1}>Auto</option>
 													{qualityLevels.map((level) => (
 														<option key={level.index} value={level.index}>
-															{level.name} ({Math.round(level.bitrate / 1000)}kbps)
+															{level.name} ({Math.round(level.bitrate / 1000)}
+															kbps)
 														</option>
 													))}
 												</select>
@@ -784,11 +787,10 @@ const CoursePage = () => {
 															// --- Exercise Result ---
 															<div className="space-y-3">
 																<div
-																	className={`p-4 rounded-lg ${
-																		submission.isCorrect
+																	className={`p-4 rounded-lg ${submission.isCorrect
 																			? "bg-green-100 border-2 border-green-500"
 																			: "bg-red-100 border-2 border-red-500"
-																	}`}
+																		}`}
 																>
 																	<p className="font-semibold mb-2">
 																		{submission.isCorrect ? (
@@ -876,16 +878,14 @@ const CoursePage = () => {
 									htmlFor="promoCode"
 									className="block text-sm font-medium text-gray-700 mb-1"
 								>
-									{t("promo_code.label", { ns: "course_page" })}{" "}
+									{t("course_page.promo_code.label")}{" "}
 									<FaTag className="inline ml-1 text-gray-500" />
 								</label>
 								<div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
 									<Input
 										type="text"
 										id="promoCode"
-										placeholder={t("promo_code.placeholder", {
-											ns: "course_page",
-										})}
+										placeholder={t("course_page.promo_code.placeholder")}
 										value={promoCodeInput}
 										onChange={handlePromoCodeInputChange}
 										className="flex-grow uppercase h-10 text-black"
@@ -905,21 +905,18 @@ const CoursePage = () => {
 											<FaSpinner className="animate-spin mr-2" />
 										)}
 										{promoCodeValidation.status === "valid"
-											? t("promo_code.applied", { ns: "course_page" })
-											: t("promo_code.validate_button", {
-													ns: "course_page",
-												})}
+											? t("course_page.promo_code.applied")
+											: t("course_page.promo_code.validate_button")}
 									</Button>
 								</div>
 
 								{/* Validation Message */}
 								{promoCodeValidation.message && (
 									<p
-										className={`text-xs mt-1 ${
-											promoCodeValidation.status === "invalid"
+										className={`text-xs mt-1 ${promoCodeValidation.status === "invalid"
 												? "text-error"
 												: "text-success"
-										}`}
+											}`}
 									>
 										{promoCodeValidation.message}
 									</p>
