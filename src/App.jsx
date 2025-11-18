@@ -15,6 +15,7 @@ import CoursePage from "./components/CoursePage";
 import PrivateRoute from "./components/PrivateRoute"; // Protects routes needing login
 import ProfilePage from "./components/ProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
+import NotFoundPage from "./components/NotFoundPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
 function App() {
@@ -40,7 +41,6 @@ function App() {
 						<Route element={<MainLayout />}>
 							{/* User Dashboard is the default after login */}
 							<Route path="/dashboard" element={<DashboardPage />} />
-							<Route path="/course" element={<DashboardPage />} />
 							<Route path="/settings" element={<SettingsPage />} />
 							<Route path="/book" element={<BookingPageEnhanced />} />
 							<Route path="/my-bookings" element={<MyBookingsPage />} />
@@ -49,8 +49,8 @@ function App() {
 						</Route>
 					</Route>
 
-					{/* Optional: Add a 404 Not Found route */}
-					{/* <Route path="*" element={<NotFoundPage />} /> */}
+					{/* 404 Not Found route */}
+					<Route path="*" element={<NotFoundPage />} />
 				</Routes>
 			</AuthProvider>
 		</Router>

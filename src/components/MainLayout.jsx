@@ -32,17 +32,7 @@ const MainLayout = () => {
       icon: FaHome,
     },
     {
-      path: "/courses",
-      label: t("nav.courses", { defaultValue: "Хичээлүүд" }),
-      icon: FaBook,
-    },
-    {
-      path: "/teachers",
-      label: t("nav.teachers", { defaultValue: "Багш нар" }),
-      icon: FaChalkboardTeacher,
-    },
-    {
-      path: "/booking",
+      path: "/book",
       label: t("nav.booking", { defaultValue: "Багш захиалах" }),
       icon: FaCalendarAlt,
     },
