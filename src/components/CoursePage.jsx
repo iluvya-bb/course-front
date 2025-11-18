@@ -141,13 +141,16 @@ const CoursePage = () => {
 				const response = await API.streamVideo(selectedLesson.id);
 				const streamData = response.data.data;
 				console.log("Stream type:", streamData.type);
+				console.log("Stream URL:", streamData.url);
 
 				if (streamData.type === "hls") {
 					setVideoType("hls");
-					setVideoSrc(`${API_URL}${streamData.url}`);
+					// Use CloudFront URL directly (already a full URL from backend)
+					setVideoSrc(streamData.url);
 				} else {
 					setVideoType("regular");
-					setVideoSrc(`${API_URL}${streamData.url}`);
+					// Use CloudFront URL directly (already a full URL from backend)
+					setVideoSrc(streamData.url);
 				}
 			} catch (error) {
 				console.error("Failed to fetch video info:", error);
