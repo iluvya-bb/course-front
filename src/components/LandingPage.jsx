@@ -91,7 +91,7 @@ const Nav = () => {
 						href="#categories"
 						className="text-base-content hover:text-primary transition-colors font-semibold"
 					>
-						Categories
+						{t("nav.categories", { defaultValue: "Ангилал" })}
 					</a>
 					<a
 						href="#courses"
@@ -106,6 +106,12 @@ const Nav = () => {
 						{t("nav.teachers")}
 					</a>
 					<a
+						href="/account"
+						className="text-base-content hover:text-primary transition-colors font-semibold"
+					>
+						{t("nav.book_teacher", { defaultValue: "Багш захиалах" })}
+					</a>
+					<a
 						href="#testimonials"
 						className="text-base-content hover:text-primary transition-colors font-semibold"
 					>
@@ -118,7 +124,7 @@ const Nav = () => {
 						href="/account"
 						className="bg-primary text-neutral px-6 py-2 rounded-md font-bold ml-4 hover:bg-primary/80 transition-colors"
 					>
-						Login
+						{t("nav.login", { defaultValue: "Нэвтрэх" })}
 					</a>
 				</div>
 			</div>

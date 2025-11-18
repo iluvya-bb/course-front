@@ -14,6 +14,7 @@ import MainLayout from "./components/MainLayout";
 import CoursePage from "./components/CoursePage";
 import PrivateRoute from "./components/PrivateRoute"; // Protects routes needing login
 import ProfilePage from "./components/ProfilePage";
+import ResetPasswordPage from "./components/ResetPasswordPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
 function App() {
@@ -29,6 +30,8 @@ function App() {
 					<Route path="/account" element={<AccountPage />} />
 					<Route path="/login" element={<AccountPage />} />
 					<Route path="/register" element={<AccountPage />} />
+					{/* Reset Password Route */}
+					<Route path="/reset-password" element={<ResetPasswordPage />} />
 
 					{/* --- Private Routes (Require Login) --- */}
 					{/* Wrap protected routes with PrivateRoute */}

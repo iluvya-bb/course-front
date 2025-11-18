@@ -7,6 +7,20 @@ const axiosInstance = axios.create({
 	withCredentials: true,
 });
 
+// Request interceptor to attach Authorization header
+axiosInstance.interceptors.request.use(
+	(config) => {
+		const token = localStorage.getItem("token");
+		if (token) {
+			config.headers.Authorization = `Bearer ${token}`;
+		}
+		return config;
+	},
+	(error) => {
+		return Promise.reject(error);
+	}
+);
+
 axiosInstance.interceptors.response.use(
 	(response) => response,
 	(error) => {
@@ -26,6 +40,12 @@ const API = {
 	getMe: () => axiosInstance.get("/auth/me"),
 	updateProfile: (data) => axiosInstance.put("/auth/me", data),
 	getMyBookings: () => axiosInstance.get("/auth/bookings"),
+	forgotPassword: (email) =>
+		axiosInstance.post("/users/forgot-password", { email }),
+	resetPassword: (token, newPassword) =>
+		axiosInstance.post("/users/reset-password", { token, password: newPassword }),
+	validateResetToken: (token) =>
+		axiosInstance.post("/users/validate-reset-token", { token }),
 
 	// --- Users (from user.js) ---
 	getUsers: (params) => axiosInstance.get("/users", { params }),

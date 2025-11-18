@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../contexts/AuthContext"; // Import useAuth
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { FaSpinner } from "react-icons/fa"; // Optional: for loading spinner
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const AccountPage = () => {
   // Removed onLogin prop
@@ -14,6 +15,7 @@ const AccountPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const { login, register } = useAuth(); // Get login/register functions from context
   const navigate = useNavigate(); // Hook for navigation
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const toggleForm = () => setIsLogin(!isLogin);
 
@@ -71,7 +73,10 @@ const AccountPage = () => {
         <div className="bg-neutral p-8 rounded-lg border-2 border-neutral shadow-[8px_8px_0px_#00F6FF]">
           {/* Pass the correct handlers down */}
           {isLogin ? (
-            <LoginForm onSubmit={handleLoginSubmit} />
+            <LoginForm
+              onSubmit={handleLoginSubmit}
+              onForgotPassword={() => setShowForgotPassword(true)}
+            />
           ) : (
             <SignUpForm onSubmit={handleRegisterSubmit} />
           )}
@@ -90,12 +95,18 @@ const AccountPage = () => {
           </button>
         </p>
       </motion.div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </div>
   );
 };
 
 // --- LoginForm Component ---
-const LoginForm = ({ onSubmit }) => {
+const LoginForm = ({ onSubmit, onForgotPassword }) => {
   // Renamed prop to onSubmit
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
@@ -126,8 +137,19 @@ const LoginForm = ({ onSubmit }) => {
         />
       </div>
       <div>
-        <Label htmlFor="login-password">{t("login.password")}</Label>{" "}
-        {/* Unique ID */}
+        <div className="flex items-center justify-between mb-1">
+          <Label htmlFor="login-password">{t("login.password")}</Label>
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            className="text-sm text-primary hover:underline"
+            disabled={loading}
+          >
+            {t("login.forgot_password", {
+              defaultValue: "Нууц үг мартсан?",
+            })}
+          </button>
+        </div>
         <Input
           id="login-password"
           type="password"

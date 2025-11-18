@@ -6,6 +6,8 @@ import {
   FaCog,
   FaSignOutAlt,
   FaChevronDown,
+  FaCalendarAlt,
+  FaUser,
 } from "react-icons/fa";
 import API from "../services/api"; // For API_URL if needed for avatar
 
@@ -77,6 +79,28 @@ const UserDropdown = ({ user, onLogout }) => {
             </p>
           </div>
 
+          {/* Profile Link */}
+          <Link
+            to="/profile"
+            onClick={handleLinkClick}
+            className="flex items-center w-full px-4 py-2 text-sm text-base-content hover:bg-base-200 hover:text-primary"
+            role="menuitem"
+          >
+            <FaUser className="mr-2 h-4 w-4" />
+            {t("nav.profile", { defaultValue: "Профайл" })}
+          </Link>
+
+          {/* My Bookings Link */}
+          <Link
+            to="/my-bookings"
+            onClick={handleLinkClick}
+            className="flex items-center w-full px-4 py-2 text-sm text-base-content hover:bg-base-200 hover:text-primary"
+            role="menuitem"
+          >
+            <FaCalendarAlt className="mr-2 h-4 w-4" />
+            {t("nav.my_bookings", { defaultValue: "Миний захиалгууд" })}
+          </Link>
+
           {/* Settings Link */}
           <Link
             to="/settings"
@@ -85,7 +109,7 @@ const UserDropdown = ({ user, onLogout }) => {
             role="menuitem"
           >
             <FaCog className="mr-2 h-4 w-4" />
-            {t("dashboard.settings")}
+            {t("dashboard.settings", { defaultValue: "Тохиргоо" })}
           </Link>
 
           {/* Logout Button */}
@@ -94,11 +118,11 @@ const UserDropdown = ({ user, onLogout }) => {
               handleLinkClick(); // Close dropdown first
               onLogout(); // Then call logout
             }}
-            className="flex items-center w-full px-4 py-2 text-sm text-error hover:bg-base-200" // Use error color for logout
+            className="flex items-center w-full px-4 py-2 text-sm text-error hover:bg-base-200 border-t border-neutral mt-1" // Use error color for logout
             role="menuitem"
           >
             <FaSignOutAlt className="mr-2 h-4 w-4" />
-            {t("dashboard.logout")}
+            {t("dashboard.logout", { defaultValue: "Гарах" })}
           </button>
         </div>
       )}

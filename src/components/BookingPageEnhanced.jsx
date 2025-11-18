@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -9,10 +9,13 @@ import {
 	FaUserTie,
 	FaClock,
 	FaMapMarkerAlt,
+	FaInfoCircle,
 } from "react-icons/fa";
 import API from "../services/api";
 import BookingConfirmationModal from "./BookingConfirmationModal";
 import Toast from "./Toast";
+import TeacherCard from "./TeacherCard";
+import { getMinDate, getMaxDate, getDayName, daysUntil } from "../utils/dateUtils";
 
 const BookingPageEnhanced = () => {
 	const { t } = useTranslation(["translation", "booking"]);
@@ -72,10 +75,19 @@ const BookingPageEnhanced = () => {
 			});
 			setAvailableSlots(response.data.data || []);
 			if (response.data.data.length === 0) {
+				// Better error message with suggestions
+				const dayName = getDayName(bookingDate);
+				const daysAway = daysUntil(bookingDate);
+				const suggestions = [];
+
+				if (daysAway === 0) {
+					suggestions.push(t("booking.try_tomorrow", { defaultValue: "Маргааш эсвэл өөр өдөр сонгоно уу" }));
+				}
+				suggestions.push(t("booking.try_different_duration", { defaultValue: "Өөр үргэлжлэх хугацаа сонгоно уу" }));
+				suggestions.push(t("booking.try_different_teacher", { defaultValue: "Өөр багш сонгоно уу" }));
+
 				setError(
-					t("booking.no_slots_available", {
-						defaultValue: "Энэ өдөр боломжтой цаг байхгүй байна.",
-					}),
+					`${dayName} (${bookingDate}) боломжтой цаг байхгүй байна. ${suggestions.join(", ")}.`
 				);
 			}
 		} catch (err) {
@@ -109,6 +121,16 @@ const BookingPageEnhanced = () => {
 		// Show confirmation modal
 		setShowConfirmation(true);
 	};
+
+	// Calculate estimated price
+	const estimatedPrice = useMemo(() => {
+		if (!selectedTeacher || !selectedTeacher.hourlyRate || !durationMinutes) {
+			return null;
+		}
+		const hours = parseInt(durationMinutes, 10) / 60;
+		const sessions = parseInt(sessionCount, 10);
+		return selectedTeacher.hourlyRate * hours * sessions;
+	}, [selectedTeacher, durationMinutes, sessionCount]);
 
 	const handleConfirmBooking = async () => {
 		// Parse selected slot
@@ -168,10 +190,12 @@ const BookingPageEnhanced = () => {
 		}
 	};
 
-	// Get minimum date (today)
-	const getMinDate = () => {
-		const today = new Date();
-		return today.toISOString().split("T")[0];
+	// Handle teacher selection
+	const handleTeacherSelect = (teacher) => {
+		setSelectedTeacherId(teacher.id.toString());
+		setSelectedTeacher(teacher);
+		setSelectedSlot("");
+		setAvailableSlots([]);
 	};
 
 	return (
@@ -196,13 +220,13 @@ const BookingPageEnhanced = () => {
 			<form onSubmit={handleBookingSubmit} className="space-y-5">
 				{/* Teacher Selection */}
 				<div>
-					<Label htmlFor="teacherId" className="flex items-center mb-2">
+					<Label className="flex items-center mb-3">
 						<FaUserTie className="mr-2 text-gray-500" />
 						{t("booking.select_teacher", { defaultValue: "Багш сонгох" })}
 						<span className="text-red-500 ml-1">*</span>
 					</Label>
 					{loadingTeachers ? (
-						<div className="flex items-center text-gray-500">
+						<div className="flex items-center justify-center text-gray-500 py-8">
 							<FaSpinner className="animate-spin mr-2" />
 							{t("loading_teachers", {
 								ns: "booking",
@@ -210,30 +234,21 @@ const BookingPageEnhanced = () => {
 							})}
 							...
 						</div>
+					) : teachers.length === 0 ? (
+						<div className="p-4 bg-gray-50 rounded-md text-center text-gray-500">
+							{t("booking.no_teachers", { defaultValue: "Багш олдсонгүй" })}
+						</div>
 					) : (
-						<select
-							id="teacherId"
-							value={selectedTeacherId}
-							onChange={(e) => {
-								setSelectedTeacherId(e.target.value);
-								setSelectedSlot("");
-								setAvailableSlots([]);
-							}}
-							required
-							className="select select-bordered w-full bg-base-200 rounded disabled:bg-gray-200"
-							disabled={isBooking || teachers.length === 0}
-						>
-							<option value="" disabled>
-								{t("booking.choose_teacher", {
-									defaultValue: "Багш сонгоно уу",
-								})}
-							</option>
+						<div className="space-y-3 max-h-96 overflow-y-auto pr-2">
 							{teachers.map((teacher) => (
-								<option key={teacher.id} value={teacher.id}>
-									{teacher.name} {teacher.title ? `(${teacher.title})` : ""}
-								</option>
+								<TeacherCard
+									key={teacher.id}
+									teacher={teacher}
+									selected={selectedTeacherId === teacher.id.toString()}
+									onClick={handleTeacherSelect}
+								/>
 							))}
-						</select>
+						</div>
 					)}
 				</div>
 
@@ -254,9 +269,16 @@ const BookingPageEnhanced = () => {
 						}}
 						required
 						min={getMinDate()}
+						max={getMaxDate()}
 						className="input input-bordered w-full bg-base-200 rounded disabled:bg-gray-200"
 						disabled={isBooking || !selectedTeacherId}
 					/>
+					{!selectedTeacherId && (
+						<p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+							<FaInfoCircle />
+							{t("booking.select_teacher_first", { defaultValue: "Эхлээд багш сонгоно уу" })}
+						</p>
+					)}
 				</div>
 
 				{/* Duration Selection */}
@@ -405,6 +427,33 @@ const BookingPageEnhanced = () => {
 						disabled={isBooking}
 					/>
 				</div>
+
+				{/* Price Estimate */}
+				{estimatedPrice && selectedSlot && (
+					<div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
+						<div className="flex items-center justify-between">
+							<div>
+								<p className="text-sm text-gray-600 flex items-center gap-1">
+									<FaInfoCircle className="text-green-600" />
+									{t("booking.estimated_price", { defaultValue: "Тооцоолсон үнэ" })}
+								</p>
+								<p className="text-xs text-gray-500 mt-1">
+									{t("booking.price_may_vary", {
+										defaultValue: "Багш баталгаажуулалтын үед үнэ өөрчлөгдөж болно"
+									})}
+								</p>
+							</div>
+							<div className="text-right">
+								<p className="text-2xl font-bold text-green-600">
+									₮{estimatedPrice.toLocaleString()}
+								</p>
+								<p className="text-xs text-gray-500">
+									{parseInt(sessionCount, 10)} хичээл
+								</p>
+							</div>
+						</div>
+					</div>
+				)}
 
 				{/* Submit Button */}
 				<div className="pt-2">

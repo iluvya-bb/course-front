@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { FaSpinner, FaCalendarAlt, FaClock, FaTimes, FaMoneyBillWave, FaMapMarkerAlt, FaUserTie, FaInfoCircle } from "react-icons/fa";
+import { FaSpinner, FaCalendarAlt, FaClock, FaTimes, FaMoneyBillWave, FaMapMarkerAlt, FaUserTie, FaInfoCircle, FaFilter, FaSort } from "react-icons/fa";
 import API from "../services/api";
 import PaymentModal from "./PaymentModal";
 import BookingCardSkeleton from "./BookingCardSkeleton";
 import Toast from "./Toast";
+import CancelConfirmModal from "./CancelConfirmModal";
+import { formatDateLong } from "../utils/dateUtils";
 
 const MyBookingsPage = () => {
 	const { t } = useTranslation(["translation", "booking"]);
@@ -15,6 +17,10 @@ const MyBookingsPage = () => {
 	const [selectedBooking, setSelectedBooking] = useState(null);
 	const [showPaymentModal, setShowPaymentModal] = useState(false);
 	const [toast, setToast] = useState(null);
+	const [statusFilter, setStatusFilter] = useState("all");
+	const [sortBy, setSortBy] = useState("date-desc");
+	const [showCancelModal, setShowCancelModal] = useState(false);
+	const [bookingToCancel, setBookingToCancel] = useState(null);
 
 	useEffect(() => {
 		fetchBookings();
@@ -49,11 +55,12 @@ const MyBookingsPage = () => {
 		fetchBookings();
 	};
 
-	const handleCancel = async (bookingId) => {
-		if (!window.confirm(t("booking.confirm_cancel", { defaultValue: "Захиалгыг цуцлахдаа итгэлтэй байна уу?" }))) {
-			return;
-		}
+	const handleOpenCancel = (booking) => {
+		setBookingToCancel(booking);
+		setShowCancelModal(true);
+	};
 
+	const handleConfirmCancel = async (bookingId) => {
 		setActionLoading(bookingId);
 		try {
 			await API.cancelBooking(bookingId);
@@ -61,6 +68,8 @@ const MyBookingsPage = () => {
 				message: t("booking.cancel_successful", { defaultValue: "Захиалга амжилттай цуцлагдлаа!" }),
 				type: "success",
 			});
+			setShowCancelModal(false);
+			setBookingToCancel(null);
 			fetchBookings();
 		} catch (err) {
 			console.error("Cancel failed:", err);
@@ -72,6 +81,38 @@ const MyBookingsPage = () => {
 			setActionLoading(null);
 		}
 	};
+
+	// Filter and sort bookings
+	const filteredAndSortedBookings = useMemo(() => {
+		let result = [...bookings];
+
+		// Apply status filter
+		if (statusFilter !== "all") {
+			result = result.filter((booking) => booking.status === statusFilter);
+		}
+
+		// Apply sorting
+		result.sort((a, b) => {
+			switch (sortBy) {
+				case "date-desc":
+					return new Date(b.bookingDate) - new Date(a.bookingDate);
+				case "date-asc":
+					return new Date(a.bookingDate) - new Date(b.bookingDate);
+				case "created-desc":
+					return new Date(b.createdAt) - new Date(a.createdAt);
+				case "created-asc":
+					return new Date(a.createdAt) - new Date(b.createdAt);
+				case "price-desc":
+					return (b.price || 0) - (a.price || 0);
+				case "price-asc":
+					return (a.price || 0) - (b.price || 0);
+				default:
+					return 0;
+			}
+		});
+
+		return result;
+	}, [bookings, statusFilter, sortBy]);
 
 	const getStatusBadge = (status) => {
 		const badges = {
@@ -95,14 +136,23 @@ const MyBookingsPage = () => {
 		);
 	};
 
-	const formatDate = (dateStr) => {
-		if (!dateStr) return "-";
-		return new Date(dateStr).toLocaleDateString('mn-MN', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
+	// Status count for filter badges
+	const statusCounts = useMemo(() => {
+		const counts = {
+			all: bookings.length,
+			pending: 0,
+			accepted: 0,
+			paid: 0,
+			completed: 0,
+			cancelled: 0,
+		};
+		bookings.forEach((booking) => {
+			if (counts[booking.status] !== undefined) {
+				counts[booking.status]++;
+			}
 		});
-	};
+		return counts;
+	}, [bookings]);
 
 	if (loading) {
 		return (
@@ -136,14 +186,90 @@ const MyBookingsPage = () => {
 				{t("booking.my_bookings", { defaultValue: "Миний захиалгууд" })}
 			</h1>
 
+			{/* Filters and Sort Controls */}
+			{bookings.length > 0 && (
+				<div className="mb-6 space-y-4">
+					{/* Status Filter Tabs */}
+					<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
+						<div className="flex items-center gap-2 mb-2">
+							<FaFilter className="text-gray-500" />
+							<span className="text-sm font-medium text-gray-700">
+								{t("booking.filter_by_status", { defaultValue: "Төлөвөөр шүүх" })}
+							</span>
+						</div>
+						<div className="flex flex-wrap gap-2">
+							{[
+								{ key: "all", label: t("booking.all", { defaultValue: "Бүгд" }) },
+								{ key: "pending", label: t("booking.status_pending", { defaultValue: "Хүлээгдэж буй" }) },
+								{ key: "accepted", label: t("booking.status_accepted", { defaultValue: "Баталгаажсан" }) },
+								{ key: "paid", label: t("booking.status_paid", { defaultValue: "Төлөгдсөн" }) },
+								{ key: "completed", label: t("booking.status_completed", { defaultValue: "Дууссан" }) },
+								{ key: "cancelled", label: t("booking.status_cancelled", { defaultValue: "Цуцлагдсан" }) },
+							].map((status) => (
+								<button
+									key={status.key}
+									onClick={() => setStatusFilter(status.key)}
+									className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+										statusFilter === status.key
+											? "bg-indigo-600 text-white"
+											: "bg-gray-100 text-gray-700 hover:bg-gray-200"
+									}`}
+								>
+									{status.label}
+									<span className="ml-1.5 text-xs opacity-75">({statusCounts[status.key] || 0})</span>
+								</button>
+							))}
+						</div>
+					</div>
+
+					{/* Sort Control */}
+					<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+						<div className="flex items-center gap-3">
+							<FaSort className="text-gray-500" />
+							<span className="text-sm font-medium text-gray-700">
+								{t("booking.sort_by", { defaultValue: "Эрэмблэх" })}:
+							</span>
+							<select
+								value={sortBy}
+								onChange={(e) => setSortBy(e.target.value)}
+								className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+							>
+								<option value="date-desc">{t("booking.newest_booking_date", { defaultValue: "Огноогоор (шинэ эхэндээ)" })}</option>
+								<option value="date-asc">{t("booking.oldest_booking_date", { defaultValue: "Огноогоор (хуучин эхэндээ)" })}</option>
+								<option value="created-desc">{t("booking.newest_created", { defaultValue: "Үүсгэсэн огноогоор (шинэ)" })}</option>
+								<option value="created-asc">{t("booking.oldest_created", { defaultValue: "Үүсгэсэн огноогоор (хуучин)" })}</option>
+								<option value="price-desc">{t("booking.highest_price", { defaultValue: "Үнээр (өндрөөс нам руу)" })}</option>
+								<option value="price-asc">{t("booking.lowest_price", { defaultValue: "Үнээр (намаас өндөр рүү)" })}</option>
+							</select>
+						</div>
+					</div>
+
+					{/* Results count */}
+					<div className="text-sm text-gray-600">
+						{t("booking.showing_bookings", { defaultValue: "Нийт" })}: {filteredAndSortedBookings.length} {t("booking.bookings", { defaultValue: "захиалга" })}
+					</div>
+				</div>
+			)}
+
 			{bookings.length === 0 ? (
 				<div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
 					<FaCalendarAlt className="mx-auto text-5xl mb-4 text-gray-300" />
 					<p className="text-lg">{t("booking.no_bookings", { defaultValue: "Танд захиалга байхгүй байна." })}</p>
 				</div>
+			) : filteredAndSortedBookings.length === 0 ? (
+				<div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+					<FaInfoCircle className="mx-auto text-5xl mb-4 text-gray-300" />
+					<p className="text-lg">{t("booking.no_bookings_filter", { defaultValue: "Шүүлтүүрт тохирох захиалга олдсонгүй." })}</p>
+					<button
+						onClick={() => setStatusFilter("all")}
+						className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+					>
+						{t("booking.clear_filters", { defaultValue: "Шүүлтүүр арилгах" })}
+					</button>
+				</div>
 			) : (
 				<div className="grid gap-6 md:grid-cols-2">
-					{bookings.map((booking) => (
+					{filteredAndSortedBookings.map((booking) => (
 						<div
 							key={booking.id}
 							className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition"
@@ -183,7 +309,7 @@ const MyBookingsPage = () => {
 										<FaCalendarAlt className="mr-3 mt-1 text-indigo-600" />
 										<div>
 											<div className="font-medium text-gray-900">
-												{formatDate(booking.bookingDate)}
+												{formatDateLong(booking.bookingDate)}
 											</div>
 											{booking.startTime && booking.endTime && (
 												<div className="text-sm text-gray-600 flex items-center mt-1">
@@ -254,7 +380,7 @@ const MyBookingsPage = () => {
 
 								{booking.status !== "completed" && booking.status !== "cancelled" && (
 									<button
-										onClick={() => handleCancel(booking.id)}
+										onClick={() => handleOpenCancel(booking)}
 										disabled={actionLoading === booking.id}
 										className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
 									>
@@ -278,6 +404,18 @@ const MyBookingsPage = () => {
 				isOpen={showPaymentModal}
 				onClose={() => setShowPaymentModal(false)}
 				onSuccess={handlePaymentSuccess}
+			/>
+
+			{/* Cancel Confirmation Modal */}
+			<CancelConfirmModal
+				booking={bookingToCancel}
+				isOpen={showCancelModal}
+				onClose={() => {
+					setShowCancelModal(false);
+					setBookingToCancel(null);
+				}}
+				onConfirm={handleConfirmCancel}
+				isLoading={actionLoading === bookingToCancel?.id}
 			/>
 
 			{/* Toast Notification */}
