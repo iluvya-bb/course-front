@@ -43,7 +43,7 @@ import WhyChooseUsSection from "./WhyChooseUsSection";
 const Nav = () => {
 	const { t } = useTranslation();
 	const [logo, setLogo] = useState(null);
-	const [siteName, setSiteName] = useState('EduStream');
+	const [siteName, setSiteName] = useState("EduClass");
 
 	useEffect(() => {
 		const fetchParams = async () => {
@@ -51,17 +51,17 @@ const Nav = () => {
 				const response = await API.getParameters();
 				const params = response.data.data || [];
 
-				const logoParam = params.find(p => p.key === 'logo');
+				const logoParam = params.find((p) => p.key === "logo");
 				if (logoParam && logoParam.value) {
 					setLogo(`${API_URL}/${logoParam.value}`);
 				}
 
-				const siteNameParam = params.find(p => p.key === 'site_name');
+				const siteNameParam = params.find((p) => p.key === "site_name");
 				if (siteNameParam && siteNameParam.value) {
 					setSiteName(siteNameParam.value);
 				}
 			} catch (error) {
-				console.error('Failed to fetch parameters:', error);
+				console.error("Failed to fetch parameters:", error);
 			}
 		};
 		fetchParams();
@@ -73,7 +73,7 @@ const Nav = () => {
 				<div className="flex items-center">
 					<img
 						src={logo || "/logo.svg"}
-						alt="EduStream logo"
+						alt="EduClass logo"
 						className="h-8 w-auto"
 					/>
 					<h1 className="text-2xl font-bold text-base-content ml-2">
@@ -136,10 +136,10 @@ import { Button } from "./ui/button";
 
 const Hero = () => {
 	const { t } = useTranslation();
-	const [heroTitle, setHeroTitle] = useState('');
-	const [heroSubtitle, setHeroSubtitle] = useState('');
-	const [heroButtonCourses, setHeroButtonCourses] = useState('');
-	const [heroButtonTutor, setHeroButtonTutor] = useState('');
+	const [heroTitle, setHeroTitle] = useState("");
+	const [heroSubtitle, setHeroSubtitle] = useState("");
+	const [heroButtonCourses, setHeroButtonCourses] = useState("");
+	const [heroButtonTutor, setHeroButtonTutor] = useState("");
 
 	useEffect(() => {
 		const fetchParams = async () => {
@@ -147,19 +147,24 @@ const Hero = () => {
 				const response = await API.getParameters();
 				const params = response.data.data || [];
 
-				const titleParam = params.find(p => p.key === 'hero_title');
+				const titleParam = params.find((p) => p.key === "hero_title");
 				if (titleParam?.value) setHeroTitle(titleParam.value);
 
-				const subtitleParam = params.find(p => p.key === 'hero_subtitle');
+				const subtitleParam = params.find((p) => p.key === "hero_subtitle");
 				if (subtitleParam?.value) setHeroSubtitle(subtitleParam.value);
 
-				const buttonCoursesParam = params.find(p => p.key === 'hero_button_courses');
-				if (buttonCoursesParam?.value) setHeroButtonCourses(buttonCoursesParam.value);
+				const buttonCoursesParam = params.find(
+					(p) => p.key === "hero_button_courses",
+				);
+				if (buttonCoursesParam?.value)
+					setHeroButtonCourses(buttonCoursesParam.value);
 
-				const buttonTutorParam = params.find(p => p.key === 'hero_button_tutor');
+				const buttonTutorParam = params.find(
+					(p) => p.key === "hero_button_tutor",
+				);
 				if (buttonTutorParam?.value) setHeroButtonTutor(buttonTutorParam.value);
 			} catch (error) {
-				console.error('Failed to fetch parameters:', error);
+				console.error("Failed to fetch parameters:", error);
 			}
 		};
 		fetchParams();
@@ -196,7 +201,9 @@ const Hero = () => {
 						</p>
 						<div className="mt-8 flex justify-center md:justify-start space-x-4">
 							<Button>{heroButtonCourses || t("hero.button_courses")}</Button>
-							<Button variant="">{heroButtonTutor || t("hero.button_tutor")}</Button>
+							<Button variant="">
+								{heroButtonTutor || t("hero.button_tutor")}
+							</Button>
 						</div>
 					</motion.div>
 					<motion.div
@@ -332,7 +339,9 @@ const Courses = () => {
 				</motion.div>
 				{loading ? (
 					<div className="text-center py-12">
-						<p className="text-base-content">{t("common.loading") || "Loading..."}</p>
+						<p className="text-base-content">
+							{t("common.loading") || "Loading..."}
+						</p>
 					</div>
 				) : (
 					<motion.div
@@ -343,12 +352,18 @@ const Courses = () => {
 						viewport={{ once: true }}
 					>
 						{courses.map((course) => {
-							const courseTitle = typeof course.title === 'object'
-								? course.title[i18n.language] || course.title.en || course.title.mn
-								: course.title;
-							const courseDesc = typeof course.description === 'object'
-								? course.description[i18n.language] || course.description.en || course.description.mn
-								: course.description || "";
+							const courseTitle =
+								typeof course.title === "object"
+									? course.title[i18n.language] ||
+										course.title.en ||
+										course.title.mn
+									: course.title;
+							const courseDesc =
+								typeof course.description === "object"
+									? course.description[i18n.language] ||
+										course.description.en ||
+										course.description.mn
+									: course.description || "";
 							const bannerImage = course.bannerImage
 								? `${API_URL}/${course.bannerImage}`
 								: "https://images.unsplash.com/photo-1524995767962-b1f5b5a8a485?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&q=80";
@@ -366,12 +381,16 @@ const Courses = () => {
 									/>
 									<div className="p-6">
 										<p className="text-sm font-bold text-primary uppercase">
-											{course.category?.name?.[i18n.language] || course.category?.name || "Course"}
+											{course.category?.name?.[i18n.language] ||
+												course.category?.name ||
+												"Course"}
 										</p>
 										<h3 className="mt-2 text-xl font-bold text-base-content">
 											{courseTitle}
 										</h3>
-										<p className="mt-2 text-base-content line-clamp-2">{courseDesc}</p>
+										<p className="mt-2 text-base-content line-clamp-2">
+											{courseDesc}
+										</p>
 										<div className="mt-4">
 											<a
 												href={`/courses/${course.id}`}
@@ -493,7 +512,9 @@ const Teachers = () => {
 				</motion.div>
 				{loading ? (
 					<div className="text-center py-12">
-						<p className="text-base-content">{t("common.loading") || "Loading..."}</p>
+						<p className="text-base-content">
+							{t("common.loading") || "Loading..."}
+						</p>
 					</div>
 				) : (
 					<motion.div
@@ -504,19 +525,30 @@ const Teachers = () => {
 						viewport={{ once: true }}
 					>
 						{teachers.map((teacher) => {
-							const teacherName = teacher.name || t("teachers.default_name") || "Teacher";
-							const teacherSpecialty = typeof teacher.specialty === 'object'
-								? teacher.specialty[i18n.language] || teacher.specialty.en || teacher.specialty.mn
-								: teacher.specialty || "";
-							const teacherBio = typeof teacher.bio === 'object'
-								? teacher.bio[i18n.language] || teacher.bio.en || teacher.bio.mn
-								: teacher.bio || "";
+							const teacherName =
+								teacher.name || t("teachers.default_name") || "Teacher";
+							const teacherSpecialty =
+								typeof teacher.specialty === "object"
+									? teacher.specialty[i18n.language] ||
+										teacher.specialty.en ||
+										teacher.specialty.mn
+									: teacher.specialty || "";
+							const teacherBio =
+								typeof teacher.bio === "object"
+									? teacher.bio[i18n.language] ||
+										teacher.bio.en ||
+										teacher.bio.mn
+									: teacher.bio || "";
 							const avatarUrl = teacher.avatar
 								? `${API_URL}/${teacher.avatar}`
 								: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=300&q=80";
 
 							return (
-								<motion.div key={teacher.id} className="text-center" variants={fadeIn}>
+								<motion.div
+									key={teacher.id}
+									className="text-center"
+									variants={fadeIn}
+								>
 									<img
 										src={avatarUrl}
 										alt={teacherName}
@@ -526,7 +558,9 @@ const Teachers = () => {
 										{teacherName}
 									</h3>
 									<p className="mt-1 text-base-content">{teacherSpecialty}</p>
-									<p className="mt-2 text-base-content/80 text-sm">{teacherBio}</p>
+									<p className="mt-2 text-base-content/80 text-sm">
+										{teacherBio}
+									</p>
 								</motion.div>
 							);
 						})}
@@ -578,7 +612,9 @@ const Testimonials = () => {
 				</motion.div>
 				{loading ? (
 					<div className="text-center py-12">
-						<p className="text-base-content">{t("common.loading") || "Loading..."}</p>
+						<p className="text-base-content">
+							{t("common.loading") || "Loading..."}
+						</p>
 					</div>
 				) : (
 					<motion.div
@@ -589,15 +625,26 @@ const Testimonials = () => {
 						viewport={{ once: true }}
 					>
 						{testimonials.map((testimonial) => {
-							const testimonialName = typeof testimonial.name === 'object'
-								? testimonial.name[i18n.language] || testimonial.name.en || testimonial.name.mn
-								: testimonial.name || t("testimonials.default_name") || "User";
-							const testimonialRole = typeof testimonial.role === 'object'
-								? testimonial.role[i18n.language] || testimonial.role.en || testimonial.role.mn
-								: testimonial.role || "";
-							const testimonialQuote = typeof testimonial.quote === 'object'
-								? testimonial.quote[i18n.language] || testimonial.quote.en || testimonial.quote.mn
-								: testimonial.quote || "";
+							const testimonialName =
+								typeof testimonial.name === "object"
+									? testimonial.name[i18n.language] ||
+										testimonial.name.en ||
+										testimonial.name.mn
+									: testimonial.name ||
+										t("testimonials.default_name") ||
+										"User";
+							const testimonialRole =
+								typeof testimonial.role === "object"
+									? testimonial.role[i18n.language] ||
+										testimonial.role.en ||
+										testimonial.role.mn
+									: testimonial.role || "";
+							const testimonialQuote =
+								typeof testimonial.quote === "object"
+									? testimonial.quote[i18n.language] ||
+										testimonial.quote.en ||
+										testimonial.quote.mn
+									: testimonial.quote || "";
 							const imageUrl = testimonial.imageUrl
 								? `${API_URL}/${testimonial.imageUrl}`
 								: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=100&q=80";
@@ -777,41 +824,41 @@ const Contact = () => {
 const Footer = () => {
 	const { t, i18n } = useTranslation();
 	const year = new Date().getFullYear();
-	const [siteName, setSiteName] = useState('EduStream');
-	const [footerText, setFooterText] = useState('');
-	const [contactEmail, setContactEmail] = useState('info@edustream.mn');
-	const [contactPhone, setContactPhone] = useState('+976 7777 8888');
-	const [contactAddress, setContactAddress] = useState('Ulaanbaatar, Mongolia');
+	const [siteName, setSiteName] = useState("EduClass");
+	const [footerText, setFooterText] = useState("");
+	const [contactEmail, setContactEmail] = useState("info@buteekhui.com");
+	const [contactPhone, setContactPhone] = useState("+976 90111016");
+	const [contactAddress, setContactAddress] = useState("Ulaanbaatar, Mongolia");
 	const [courses, setCourses] = useState([]);
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
 				// Fetch parameters
-				console.log('Footer: Fetching parameters...');
+				console.log("Footer: Fetching parameters...");
 				const response = await API.getParameters();
-				console.log('Footer: Parameters response:', response.data);
+				console.log("Footer: Parameters response:", response.data);
 				const params = response.data.data || [];
-				console.log('Footer: Parameters data:', params);
+				console.log("Footer: Parameters data:", params);
 
-				const siteNameParam = params.find(p => p.key === 'site_name');
-				console.log('Footer: site_name param:', siteNameParam);
+				const siteNameParam = params.find((p) => p.key === "site_name");
+				console.log("Footer: site_name param:", siteNameParam);
 				if (siteNameParam?.value) setSiteName(siteNameParam.value);
 
-				const footerTextParam = params.find(p => p.key === 'footer_text');
-				console.log('Footer: footer_text param:', footerTextParam);
+				const footerTextParam = params.find((p) => p.key === "footer_text");
+				console.log("Footer: footer_text param:", footerTextParam);
 				if (footerTextParam?.value) setFooterText(footerTextParam.value);
 
-				const emailParam = params.find(p => p.key === 'contact_email');
-				console.log('Footer: contact_email param:', emailParam);
+				const emailParam = params.find((p) => p.key === "contact_email");
+				console.log("Footer: contact_email param:", emailParam);
 				if (emailParam?.value) setContactEmail(emailParam.value);
 
-				const phoneParam = params.find(p => p.key === 'contact_phone');
-				console.log('Footer: contact_phone param:', phoneParam);
+				const phoneParam = params.find((p) => p.key === "contact_phone");
+				console.log("Footer: contact_phone param:", phoneParam);
 				if (phoneParam?.value) setContactPhone(phoneParam.value);
 
-				const addressParam = params.find(p => p.key === 'contact_address');
-				console.log('Footer: contact_address param:', addressParam);
+				const addressParam = params.find((p) => p.key === "contact_address");
+				console.log("Footer: contact_address param:", addressParam);
 				if (addressParam?.value) setContactAddress(addressParam.value);
 
 				// Fetch courses for footer
@@ -820,7 +867,7 @@ const Footer = () => {
 				// Get first 3 courses for footer
 				setCourses(allCourses.slice(0, 3));
 			} catch (error) {
-				console.error('Footer: Failed to fetch data:', error);
+				console.error("Footer: Failed to fetch data:", error);
 			}
 		};
 		fetchData();
@@ -831,7 +878,9 @@ const Footer = () => {
 				<div className="grid md:grid-cols-4 gap-8">
 					<div>
 						<h3 className="text-lg font-bold text-base-content">{siteName}</h3>
-						<p className="mt-4 text-base-content">{footerText || t("hero.subtitle")}</p>
+						<p className="mt-4 text-base-content">
+							{footerText || t("hero.subtitle")}
+						</p>
 					</div>
 					<div>
 						<h3 className="text-lg font-bold text-base-content">
@@ -855,30 +904,57 @@ const Footer = () => {
 						</h3>
 						<ul className="mt-4 space-y-2 text-base-content">
 							<li>
-								<a href={courses.length > 0 && courses[0] ? `/courses/${courses[0].id}` : "#"} className="hover:text-primary">
-									{courses.length > 0 && courses[0] ? (
-									typeof courses[0].title === 'object'
-										? courses[0].title[i18n.language] || courses[0].title.en || courses[0].title.mn
-										: courses[0].title
-								) : t("courses.design_title")}
+								<a
+									href={
+										courses.length > 0 && courses[0]
+											? `/courses/${courses[0].id}`
+											: "#"
+									}
+									className="hover:text-primary"
+								>
+									{courses.length > 0 && courses[0]
+										? typeof courses[0].title === "object"
+											? courses[0].title[i18n.language] ||
+												courses[0].title.en ||
+												courses[0].title.mn
+											: courses[0].title
+										: t("courses.design_title")}
 								</a>
 							</li>
 							<li>
-								<a href={courses.length > 1 && courses[1] ? `/courses/${courses[1].id}` : "#"} className="hover:text-primary">
-									{courses.length > 1 && courses[1] ? (
-									typeof courses[1].title === 'object'
-										? courses[1].title[i18n.language] || courses[1].title.en || courses[1].title.mn
-										: courses[1].title
-								) : t("courses.programming_title")}
+								<a
+									href={
+										courses.length > 1 && courses[1]
+											? `/courses/${courses[1].id}`
+											: "#"
+									}
+									className="hover:text-primary"
+								>
+									{courses.length > 1 && courses[1]
+										? typeof courses[1].title === "object"
+											? courses[1].title[i18n.language] ||
+												courses[1].title.en ||
+												courses[1].title.mn
+											: courses[1].title
+										: t("courses.programming_title")}
 								</a>
 							</li>
 							<li>
-								<a href={courses.length > 2 && courses[2] ? `/courses/${courses[2].id}` : "#"} className="hover:text-primary">
-									{courses.length > 2 && courses[2] ? (
-									typeof courses[2].title === 'object'
-										? courses[2].title[i18n.language] || courses[2].title.en || courses[2].title.mn
-										: courses[2].title
-								) : t("courses.language_title")}
+								<a
+									href={
+										courses.length > 2 && courses[2]
+											? `/courses/${courses[2].id}`
+											: "#"
+									}
+									className="hover:text-primary"
+								>
+									{courses.length > 2 && courses[2]
+										? typeof courses[2].title === "object"
+											? courses[2].title[i18n.language] ||
+												courses[2].title.en ||
+												courses[2].title.mn
+											: courses[2].title
+										: t("courses.language_title")}
 								</a>
 							</li>
 						</ul>

@@ -71,7 +71,7 @@
 	},
 	"about": {
 		"title": "Our Mission: Education for All",
-		"text": "We believe that quality education should be accessible, flexible, and tailored to individual needs. EduStream was founded to bridge the gap between traditional learning and the digital age. Our goal is to empower learners with the tools they need to succeed."
+		"text": "We believe that quality education should be accessible, flexible, and tailored to individual needs. EduClass was founded to bridge the gap between traditional learning and the digital age. Our goal is to empower learners with the tools they need to succeed."
 	},
 	"why_choose_us": {
 		"title": "Why Choose Us?",
@@ -101,7 +101,7 @@
 		"send_button": "Send"
 	},
 	"footer": {
-		"copyright": "© {{year}} EduStream. All rights reserved.",
+		"copyright": "© 2025 EduClass. All rights reserved.",
 		"follow_us": "Follow Us"
 	},
 	"start_button": "Start",
@@ -127,8 +127,8 @@
 		"no_courses_found": "No courses found.",
 		"no_courses_found_subtitle": "Try adjusting your search or filters.",
 		"logout": "Logout",
-		"logo_alt": "EduStream logo",
-		"heading": "EduStream",
+		"logo_alt": "EduClass logo",
+		"heading": "EduClass",
 		"by": "By",
 		"complete": "Complete",
 		"subscribed": "Subscribed",
