@@ -16,6 +16,7 @@ import PrivateRoute from "./components/PrivateRoute"; // Protects routes needing
 import ProfilePage from "./components/ProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import NotFoundPage from "./components/NotFoundPage";
+import AuthCallbackPage from "./components/AuthCallbackPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
 function App() {
@@ -33,6 +34,8 @@ function App() {
 					<Route path="/register" element={<AccountPage />} />
 					{/* Reset Password Route */}
 					<Route path="/reset-password" element={<ResetPasswordPage />} />
+				{/* OAuth Callback Route */}
+				<Route path="/auth/callback" element={<AuthCallbackPage />} />
 
 					{/* --- Private Routes (Require Login) --- */}
 					{/* Wrap protected routes with PrivateRoute */}

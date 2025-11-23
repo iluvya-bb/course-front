@@ -33,6 +33,18 @@ const stagger = {
   },
 };
 
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
+
 // Icon mapping for categories
 const iconMap = {
   development: <Code className="w-10 h-10" />,
@@ -76,8 +88,22 @@ const CategoriesSection = () => {
   }
 
   return (
-    <section id="categories" className="py-24 bg-base-100">
-      <div className="container mx-auto px-6">
+    <section id="categories" className="py-24 bg-gradient-to-b from-base-100 to-brand-cream/20 relative overflow-hidden">
+      {/* Animated background blob */}
+      <motion.div
+        className="absolute top-10 right-0 w-80 h-80 bg-brand-coral/10 rounded-full blur-3xl"
+        animate={{
+          x: [0, -50, 0],
+          y: [0, 50, 0],
+          scale: [1, 1.2, 1],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      <div className="container mx-auto px-6 relative z-10">
         <motion.div
           className="text-center mb-12"
           variants={fadeIn}
@@ -85,7 +111,7 @@ const CategoriesSection = () => {
           whileInView="visible"
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-black text uppercase">
+          <h2 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-brand-lavender via-brand-coral to-brand-yellow bg-clip-text text-transparent uppercase">
             Browse by Category
           </h2>
         </motion.div>
@@ -101,7 +127,7 @@ const CategoriesSection = () => {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            {categories.map((category) => {
+            {categories.map((category, index) => {
               const categoryName =
                 typeof category.name === "object"
                   ? category.name[i18n.language] ||
@@ -109,24 +135,41 @@ const CategoriesSection = () => {
                   category.name.mn
                   : category.name;
 
+              const gradients = [
+                "from-brand-lavender/10 to-brand-coral/10 border-brand-lavender/30 hover:shadow-brand-lavender/30",
+                "from-brand-coral/10 to-brand-yellow/10 border-brand-coral/30 hover:shadow-brand-coral/30",
+                "from-brand-yellow/10 to-brand-lime/10 border-brand-yellow/30 hover:shadow-brand-yellow/30",
+                "from-brand-lime/10 to-brand-lavender/10 border-brand-lime/30 hover:shadow-brand-lime/30",
+              ];
+              const iconColors = ["text-brand-lavender", "text-brand-coral", "text-brand-yellow", "text-brand-lime"];
+              const gradient = gradients[index % gradients.length];
+              const iconColor = iconColors[index % iconColors.length];
+
               return (
                 <motion.div
                   key={category.id}
-                  className="bg-neutral p-6 rounded-md text-center border-2 border-neutral shadow-[4px_4px_0px_#00F6FF] hover:shadow-none transform hover:-translate-y-1 transition-all duration-200 cursor-pointer"
-                  variants={fadeIn}
+                  className={`bg-gradient-to-br ${gradient} p-6 rounded-2xl text-center border-2 shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer group`}
+                  variants={scaleIn}
+                  whileHover={{ y: -10, scale: 1.05 }}
                 >
                   {category.imageUrl ? (
-                    <img
+                    <motion.img
                       src={`${API_URL}/${category.imageUrl}`}
                       alt={categoryName}
-                      className="w-10 h-10 mx-auto object-contain"
+                      className="w-10 h-10 mx-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
                     />
                   ) : (
-                    <div className="text-primary inline-block">
+                    <motion.div
+                      className={`${iconColor} inline-block group-hover:scale-110 transition-transform`}
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                    >
                       {iconMap[category.slug] || iconMap.education}
-                    </div>
+                    </motion.div>
                   )}
-                  <h3 className="mt-4 text-lg font-bold text">
+                  <h3 className="mt-4 text-lg font-bold text-base-content group-hover:text-brand-lavender transition-colors">
                     {categoryName}
                   </h3>
                 </motion.div>
