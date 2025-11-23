@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import API, { API_URL } from "../services/api";
 
+// Animation Variants
 const fadeIn = {
 	hidden: { opacity: 0, y: 20 },
 	visible: {
@@ -31,6 +32,14 @@ const stagger = {
 	visible: {
 		transition: {
 			staggerChildren: 0.2,
+		},
+	},
+};
+
+const staggerFast = {
+	visible: {
+		transition: {
+			staggerChildren: 0.05,
 		},
 	},
 };
@@ -66,6 +75,55 @@ const floatAnimation = {
 			duration: 6,
 			repeat: Infinity,
 			ease: "easeInOut",
+		},
+	},
+};
+
+// Text reveal animation
+const textReveal = {
+	hidden: { opacity: 0, y: 20 },
+	visible: (i = 0) => ({
+		opacity: 1,
+		y: 0,
+		transition: {
+			delay: i * 0.05,
+			duration: 0.5,
+			ease: "easeOut",
+		},
+	}),
+};
+
+// Gradient shift animation
+const gradientShift = {
+	animate: {
+		backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+		transition: {
+			duration: 5,
+			repeat: Infinity,
+			ease: "linear",
+		},
+	},
+};
+
+// Hover effects
+const hoverLift = {
+	rest: { y: 0, scale: 1 },
+	hover: {
+		y: -8,
+		scale: 1.02,
+		transition: {
+			duration: 0.3,
+			ease: "easeOut",
+		},
+	},
+};
+
+const hoverGlow = {
+	rest: { boxShadow: "0 0 0 rgba(119, 118, 188, 0)" },
+	hover: {
+		boxShadow: "0 20px 40px rgba(119, 118, 188, 0.3)",
+		transition: {
+			duration: 0.3,
 		},
 	},
 };
@@ -145,9 +203,30 @@ const AnimatedBackground = () => {
 
 import LanguageSwitcher from "./LanguageSwitcher";
 import AnimatedBook from "./AnimatedBook";
+import Hero3DAnimation from "./Hero3DAnimation";
+import ModernHero from "./ModernHero";
 
 import CategoriesSection from "./CategoriesSection";
 import WhyChooseUsSection from "./WhyChooseUsSection";
+
+// Animated Text Component
+const AnimatedText = ({ text, className = "" }) => {
+	const words = text.split(" ");
+	return (
+		<motion.div className={className} variants={staggerFast} initial="hidden" animate="visible">
+			{words.map((word, i) => (
+				<motion.span
+					key={i}
+					className="inline-block mr-2"
+					variants={textReveal}
+					custom={i}
+				>
+					{word}
+				</motion.span>
+			))}
+		</motion.div>
+	);
+};
 
 const Nav = () => {
 	const { t } = useTranslation();
@@ -267,202 +346,7 @@ const Nav = () => {
 import { Button } from "./ui/button";
 
 const Hero = () => {
-	const { t } = useTranslation();
-	const [heroTitle, setHeroTitle] = useState("");
-	const [heroSubtitle, setHeroSubtitle] = useState("");
-	const [heroButtonCourses, setHeroButtonCourses] = useState("");
-	const [heroButtonTutor, setHeroButtonTutor] = useState("");
-
-	useEffect(() => {
-		const fetchParams = async () => {
-			try {
-				const response = await API.getParameters();
-				const params = response.data.data || [];
-
-				const titleParam = params.find((p) => p.key === "hero_title");
-				if (titleParam?.value) setHeroTitle(titleParam.value);
-
-				const subtitleParam = params.find((p) => p.key === "hero_subtitle");
-				if (subtitleParam?.value) setHeroSubtitle(subtitleParam.value);
-
-				const buttonCoursesParam = params.find(
-					(p) => p.key === "hero_button_courses",
-				);
-				if (buttonCoursesParam?.value)
-					setHeroButtonCourses(buttonCoursesParam.value);
-
-				const buttonTutorParam = params.find(
-					(p) => p.key === "hero_button_tutor",
-				);
-				if (buttonTutorParam?.value) setHeroButtonTutor(buttonTutorParam.value);
-			} catch (error) {
-				console.error("Failed to fetch parameters:", error);
-			}
-		};
-		fetchParams();
-	}, []);
-
-	return (
-		<section className="relative bg-gradient-to-br from-brand-cream/30 via-base-100 to-brand-lavender/10 text-base-content min-h-screen flex items-center justify-center overflow-hidden pt-20">
-			<AnimatedBackground />
-			<div className="absolute inset-0 bg-gradient-to-t from-base-100/80 via-transparent to-transparent z-10"></div>
-
-			{/* Floating decorative elements */}
-			<motion.div
-				className="absolute top-1/4 right-10 w-24 h-24 rounded-full bg-brand-coral opacity-60"
-				animate={{
-					y: [0, -30, 0],
-					rotate: [0, 180, 360],
-				}}
-				transition={{
-					duration: 8,
-					repeat: Infinity,
-					ease: "easeInOut",
-				}}
-			/>
-			<motion.div
-				className="absolute bottom-1/4 left-10 w-20 h-20 rounded-lg bg-brand-yellow opacity-70"
-				animate={{
-					y: [0, 20, 0],
-					rotate: [0, -90, 0],
-				}}
-				transition={{
-					duration: 10,
-					repeat: Infinity,
-					ease: "easeInOut",
-				}}
-			/>
-			<motion.div
-				className="absolute top-1/3 left-1/4 w-16 h-16 rounded-full bg-brand-lime opacity-50"
-				animate={{
-					y: [0, -20, 0],
-					x: [0, 20, 0],
-					rotate: [0, 90, 180, 270, 360],
-				}}
-				transition={{
-					duration: 12,
-					repeat: Infinity,
-					ease: "easeInOut",
-				}}
-			/>
-			<motion.div
-				className="absolute bottom-1/3 right-1/4 w-12 h-12 bg-brand-lavender rounded-lg opacity-60"
-				animate={{
-					y: [0, 15, 0],
-					x: [0, -15, 0],
-					rotate: [0, -180, -360],
-				}}
-				transition={{
-					duration: 9,
-					repeat: Infinity,
-					ease: "easeInOut",
-				}}
-			/>
-
-			<div className="container mx-auto px-6 relative z-20">
-				<div className="flex flex-col md:flex-row items-center gap-12">
-					<motion.div
-						className="md:w-1/2 text-center md:text-left"
-						variants={slideIn}
-						initial="hidden"
-						animate="visible"
-					>
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.8, delay: 0.2 }}
-						>
-							<h1 className="text-5xl md:text-7xl font-black leading-tight bg-gradient-to-r from-brand-lavender via-brand-coral to-brand-yellow bg-clip-text text-transparent uppercase">
-								{heroTitle || t("hero.title")}
-							</h1>
-						</motion.div>
-						<motion.p
-							className="mt-6 text-xl text-base-content/80"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.8, delay: 0.4 }}
-						>
-							{heroSubtitle || t("hero.subtitle")}
-						</motion.p>
-						<motion.div
-							className="mt-8 flex justify-center md:justify-start space-x-4"
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.8, delay: 0.6 }}
-						>
-							<motion.a
-								href="/account"
-								className="bg-brand-lavender text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:shadow-brand-lavender/50 hover:bg-brand-coral transition-all duration-300"
-								whileHover={{ scale: 1.05, y: -2 }}
-								whileTap={{ scale: 0.95 }}
-							>
-								{heroButtonCourses || t("hero.button_courses")}
-							</motion.a>
-							<motion.a
-								href="/account"
-								className="bg-brand-coral text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl hover:shadow-brand-coral/50 hover:bg-brand-yellow transition-all duration-300"
-								whileHover={{ scale: 1.05, y: -2 }}
-								whileTap={{ scale: 0.95 }}
-							>
-								{heroButtonTutor || t("hero.button_tutor")}
-							</motion.a>
-						</motion.div>
-					</motion.div>
-					<motion.div
-						className="md:w-1/2 mt-8 md:mt-0 relative"
-						variants={floatAnimation}
-						animate="animate"
-					>
-						<motion.div
-							initial={{ opacity: 0, scale: 0.8 }}
-							animate={{ opacity: 1, scale: 1 }}
-							transition={{ duration: 0.8, delay: 0.3 }}
-							className="relative"
-						>
-							{/* 3D Animated Book */}
-							<AnimatedBook />
-
-							{/* Decorative corner accents */}
-							<motion.div
-								className="absolute -top-8 -right-8 w-32 h-32 bg-brand-yellow rounded-full opacity-60 blur-2xl"
-								animate={{
-									scale: [1, 1.2, 1],
-								}}
-								transition={{
-									duration: 3,
-									repeat: Infinity,
-									ease: "easeInOut",
-								}}
-							/>
-							<motion.div
-								className="absolute -bottom-8 -left-8 w-28 h-28 bg-brand-coral rounded-full opacity-60 blur-2xl"
-								animate={{
-									scale: [1, 1.3, 1],
-								}}
-								transition={{
-									duration: 4,
-									repeat: Infinity,
-									ease: "easeInOut",
-								}}
-							/>
-							<motion.div
-								className="absolute top-1/2 -right-10 w-24 h-24 bg-brand-lime rounded-lg opacity-50 blur-xl"
-								animate={{
-									rotate: [0, 360],
-									scale: [1, 1.1, 1],
-								}}
-								transition={{
-									duration: 5,
-									repeat: Infinity,
-									ease: "easeInOut",
-								}}
-							/>
-						</motion.div>
-					</motion.div>
-				</div>
-			</div>
-		</section>
-	);
+	return <ModernHero />;
 };
 
 const Features = () => {
@@ -491,68 +375,110 @@ const Features = () => {
 					viewport={{ once: true }}
 				>
 					<motion.div
-						className="text-center p-8 bg-gradient-to-br from-brand-lavender/10 to-brand-coral/10 rounded-3xl border-0 shadow-xl hover:shadow-2xl hover:shadow-brand-lavender/30 transition-all duration-500 group"
+						className="relative text-center p-8 bg-gradient-to-br from-brand-lavender/10 to-brand-coral/10 rounded-3xl border-0 shadow-xl group overflow-hidden"
 						variants={scaleIn}
-						whileHover={{ y: -10, scale: 1.02 }}
+						whileHover={{ y: -12, scale: 1.03 }}
+						initial="rest"
+						animate="rest"
 					>
 						<motion.div
-							className="bg-gradient-to-br from-brand-lavender to-brand-coral rounded-full p-4 inline-block"
-							whileHover={{ rotate: 360 }}
-							transition={{ duration: 0.6 }}
-						>
-							<svg
-								className="w-8 h-8 text-white"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
+							className="absolute inset-0 bg-gradient-to-br from-brand-lavender/20 to-brand-coral/20 opacity-0"
+							initial={{ opacity: 0 }}
+							whileHover={{ opacity: 1 }}
+							transition={{ duration: 0.3 }}
+						/>
+						<div className="relative z-10">
+							<motion.div
+								className="bg-gradient-to-br from-brand-lavender to-brand-coral rounded-full p-4 inline-block"
+								whileHover={{ rotate: 360, scale: 1.1 }}
+								transition={{ duration: 0.6, type: "spring", stiffness: 200 }}
 							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M15 10l4.55a2.5 2.5 0 010 4.24l-8.51 4.72a2.5 2.5 0 01-3.54-1.73L6 9m6 1l6-3.5"
-								></path>
-							</svg>
-						</motion.div>
-						<h3 className="mt-6 text-2xl font-bold bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent group-hover:scale-105 transition-transform">
-							{t("features.videos_title")}
-						</h3>
-						<p className="mt-2 text-base-content">
-							{t("features.videos_text")}
-						</p>
+								<svg
+									className="w-8 h-8 text-white"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth="2"
+										d="M15 10l4.55a2.5 2.5 0 010 4.24l-8.51 4.72a2.5 2.5 0 01-3.54-1.73L6 9m6 1l6-3.5"
+									></path>
+								</svg>
+							</motion.div>
+							<motion.h3
+								className="mt-6 text-2xl font-bold bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent"
+								whileHover={{ scale: 1.05 }}
+							>
+								{t("features.videos_title")}
+							</motion.h3>
+							<motion.p
+								className="mt-2 text-base-content"
+								initial={{ opacity: 0.8 }}
+								whileHover={{ opacity: 1 }}
+							>
+								{t("features.videos_text")}
+							</motion.p>
+						</div>
+						<motion.div
+							className="absolute -bottom-2 -right-2 w-20 h-20 bg-brand-coral/20 rounded-full blur-xl"
+							animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+							transition={{ duration: 3, repeat: Infinity }}
+						/>
 					</motion.div>
 					<motion.div
-						className="text-center p-8 bg-gradient-to-br from-brand-yellow/10 to-brand-lime/10 rounded-3xl border-0 shadow-xl hover:shadow-2xl hover:shadow-brand-yellow/30 transition-all duration-500 group"
+						className="relative text-center p-8 bg-gradient-to-br from-brand-yellow/10 to-brand-lime/10 rounded-3xl border-0 shadow-xl group overflow-hidden"
 						variants={scaleIn}
-						whileHover={{ y: -10, scale: 1.02 }}
+						whileHover={{ y: -12, scale: 1.03 }}
 					>
 						<motion.div
-							className="bg-gradient-to-br from-brand-yellow to-brand-lime rounded-full p-4 inline-block"
-							whileHover={{ rotate: 360 }}
-							transition={{ duration: 0.6 }}
-						>
-							<svg
-								className="w-8 h-8 text-white"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
+							className="absolute inset-0 bg-gradient-to-br from-brand-yellow/20 to-brand-lime/20 opacity-0"
+							initial={{ opacity: 0 }}
+							whileHover={{ opacity: 1 }}
+							transition={{ duration: 0.3 }}
+						/>
+						<div className="relative z-10">
+							<motion.div
+								className="bg-gradient-to-br from-brand-yellow to-brand-lime rounded-full p-4 inline-block"
+								whileHover={{ rotate: 360, scale: 1.1 }}
+								transition={{ duration: 0.6, type: "spring", stiffness: 200 }}
 							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth="2"
-									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-								></path>
-							</svg>
-						</motion.div>
-						<h3 className="mt-6 text-2xl font-bold bg-gradient-to-r from-brand-yellow to-brand-lime bg-clip-text text-transparent group-hover:scale-105 transition-transform">
-							{t("features.live_tutoring_title")}
-						</h3>
-						<p className="mt-2 text-base-content">
-							{t("features.live_tutoring_text")}
-						</p>
+								<svg
+									className="w-8 h-8 text-white"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth="2"
+										d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+									></path>
+								</svg>
+							</motion.div>
+							<motion.h3
+								className="mt-6 text-2xl font-bold bg-gradient-to-r from-brand-yellow to-brand-lime bg-clip-text text-transparent"
+								whileHover={{ scale: 1.05 }}
+							>
+								{t("features.live_tutoring_title")}
+							</motion.h3>
+							<motion.p
+								className="mt-2 text-base-content"
+								initial={{ opacity: 0.8 }}
+								whileHover={{ opacity: 1 }}
+							>
+								{t("features.live_tutoring_text")}
+							</motion.p>
+						</div>
+						<motion.div
+							className="absolute -bottom-2 -right-2 w-20 h-20 bg-brand-lime/20 rounded-full blur-xl"
+							animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+							transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+						/>
 					</motion.div>
 				</motion.div>
 			</div>
@@ -653,40 +579,68 @@ const Courses = () => {
 							return (
 								<motion.div
 									key={course.id}
-									className="bg-base-100 rounded-3xl overflow-hidden border-0 shadow-xl hover:shadow-2xl hover:shadow-brand-lavender/40 transition-all duration-500 group"
+									className="relative bg-base-100 rounded-3xl overflow-hidden border-0 shadow-xl group"
 									variants={scaleIn}
-									whileHover={{ y: -10, scale: 1.03 }}
+									whileHover={{ y: -15, scale: 1.04 }}
+									transition={{ duration: 0.3, ease: "easeOut" }}
 								>
+									<motion.div
+										className="absolute inset-0 bg-gradient-to-br from-brand-lavender/10 to-brand-coral/10 opacity-0 z-0"
+										whileHover={{ opacity: 1 }}
+										transition={{ duration: 0.3 }}
+									/>
 									<div className="relative overflow-hidden">
+										<motion.div
+											className="absolute inset-0 bg-gradient-to-br from-brand-lavender/80 to-brand-coral/80 opacity-0 z-10 flex items-center justify-center"
+											whileHover={{ opacity: 1 }}
+											transition={{ duration: 0.3 }}
+										>
+											<motion.div
+												initial={{ scale: 0 }}
+												whileHover={{ scale: 1, rotate: 360 }}
+												transition={{ duration: 0.5, type: "spring" }}
+												className="bg-white rounded-full p-4"
+											>
+												<svg className="w-8 h-8 text-brand-lavender" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+													<path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+												</svg>
+											</motion.div>
+										</motion.div>
 										<motion.img
 											src={bannerImage}
 											alt={courseTitle}
-											className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+											className="w-full h-48 object-cover"
+											whileHover={{ scale: 1.15 }}
+											transition={{ duration: 0.5 }}
 										/>
-										<div className="absolute inset-0 bg-gradient-to-t from-brand-lavender/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 									</div>
-									<div className="p-6">
+									<div className="p-6 relative z-10">
 										<motion.p
 											className="text-sm font-bold bg-gradient-to-r from-brand-coral to-brand-yellow bg-clip-text text-transparent uppercase"
-											whileHover={{ scale: 1.05 }}
+											whileHover={{ scale: 1.05, x: 5 }}
 										>
 											{course.category?.name?.[i18n.language] ||
 												course.category?.name ||
 												"Course"}
 										</motion.p>
-										<h3 className="mt-2 text-xl font-bold text-base-content group-hover:text-brand-lavender transition-colors">
+										<motion.h3
+											className="mt-2 text-xl font-bold text-base-content group-hover:text-brand-lavender transition-colors"
+											whileHover={{ x: 5 }}
+										>
 											{courseTitle}
-										</h3>
+										</motion.h3>
 										<p className="mt-2 text-base-content/80 line-clamp-2">
 											{courseDesc}
 										</p>
 										<div className="mt-4">
 											<motion.a
 												href={`/courses/${course.id}`}
-												className="inline-flex items-center text-brand-lavender font-bold hover:text-brand-coral transition-colors group"
-												whileHover={{ x: 5 }}
+												className="inline-flex items-center text-brand-lavender font-bold group/link"
+												whileHover={{ x: 8, color: "#ff764d" }}
+												transition={{ duration: 0.2 }}
 											>
-												{t("courses.details_button")}
+												<span>{t("courses.details_button")}</span>
 												<motion.span
 													className="ml-2"
 													animate={{ x: [0, 5, 0] }}
@@ -701,6 +655,11 @@ const Courses = () => {
 											</motion.a>
 										</div>
 									</div>
+									<motion.div
+										className="absolute -bottom-4 -right-4 w-24 h-24 bg-brand-coral/10 rounded-full blur-2xl"
+										animate={{ scale: [1, 1.3, 1] }}
+										transition={{ duration: 4, repeat: Infinity }}
+									/>
 								</motion.div>
 							);
 						})}
