@@ -1,104 +1,174 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Button } from "../ui/button"; // Assuming UI components exist
+import { Button } from "../ui/button";
 import { motion } from "framer-motion";
-// --- 1. Removed API_URL import ---
-import API from "../../services/api"; // Keep API import if needed elsewhere, otherwise remove
+import { FaGraduationCap, FaBook, FaCheckCircle, FaClock, FaStar, FaArrowRight } from "react-icons/fa";
 
 const CourseCard = ({ course, onSubscribe }) => {
-	const { t } = useTranslation(["translation", "course"]);
+	const { t } = useTranslation();
 
-	// --- 2. Use import.meta.env directly ---
 	const imageUrl = course.bannerImage
-		? `${import.meta.env.VITE_API_URL}/${course.bannerImage}` // Use Vite env variable
-		: "https://via.placeholder.com/400x200?text=No+Image"; // Placeholder
-	// ------------------------------------
+		? `${import.meta.env.VITE_API_URL}/${course.bannerImage}`
+		: "https://via.placeholder.com/400x300?text=No+Image";
 
 	return (
 		<motion.div
-			className="bg-neutral rounded-md overflow-hidden border-2 border-neutral shadow-[4px_4px_0px_#00F6FF] hover:shadow-none transform hover:-translate-y-1 transition-all duration-200 flex flex-col"
-			layout
-			key={course.id}
+			whileHover={{ y: -8, scale: 1.02 }}
+			transition={{ duration: 0.3, ease: "easeOut" }}
+			className="group relative bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden border-2 border-brand-lavender/20 shadow-xl hover:shadow-2xl transition-all duration-300"
 		>
-			<div className="flex flex-col flex-grow">
-				{/* Image Section */}
-				<div className="relative">
-					<Link to={`/course/${course.id}`} className="block">
-						<img
-							src={imageUrl}
-							alt={course.title}
-							className="w-full h-40 object-cover"
-							onError={(e) => {
-								e.target.onerror = null;
-								e.target.src =
-									"https://via.placeholder.com/400x200?text=Image+Error";
-							}}
-						/>
-					</Link>
-					{course.subscribed && (
-						<div className="absolute top-2 right-2 bg-primary text-primary-content text-xs font-bold px-2 py-1 rounded">
-							{t("dashboard.subscribed", { ns: "translation" })}
-						</div>
-					)}
+			{/* Image Section with Overlay */}
+			<div className="relative h-48 overflow-hidden">
+				<Link to={`/course/${course.id}`} className="block">
+					<img
+						src={imageUrl}
+						alt={course.title}
+						className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+						onError={(e) => {
+							e.target.onerror = null;
+							e.target.src = "https://via.placeholder.com/400x300?text=Image+Error";
+						}}
+					/>
+					{/* Gradient Overlay */}
+					<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+				</Link>
+
+				{/* Category Badge */}
+				{course.category && (
+					<div className="absolute top-4 left-4">
+						<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-brand-lavender border border-brand-lavender/30 shadow-lg">
+							<FaBook className="text-xs" />
+							{course.category}
+						</span>
+					</div>
+				)}
+
+				{/* Subscribed Badge */}
+				{course.subscribed && (
+					<div className="absolute top-4 right-4">
+						<motion.span
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500 rounded-full text-xs font-bold text-white shadow-lg"
+						>
+							<FaCheckCircle />
+							{t("dashboard.subscribed")}
+						</motion.span>
+					</div>
+				)}
+
+				{/* Rating Badge (bottom left) */}
+				<div className="absolute bottom-4 left-4">
+					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-yellow/90 backdrop-blur-md rounded-full text-xs font-bold text-white shadow-lg">
+						<FaStar className="text-xs" />
+						5.0
+					</span>
 				</div>
 
-				{/* Content Section */}
-				<div className="p-6 flex-grow flex flex-col">
-					<Link to={`/course/${course.id}`} className="block flex-grow">
-						<p className="text-sm font-bold text-primary uppercase">
-							{course.category || t("courses.category_unknown")}
-						</p>
-						<h3 className="mt-2 text-xl font-bold text-base-content hover:text-primary transition-colors duration-200">
-							{course.title}
-						</h3>
-						<p className="mt-1 text-base-content/80 text-sm">
-							{t("dashboard.by", { ns: "translation" })}{" "}
-							{course.teacher?.name || t("courses.instructor_unknown")}
-						</p>
-					</Link>
-
-					{/* Action/Progress Section */}
-					<div className="mt-4">
-						{course.subscribed ? (
-							<>
-								{course.progress !== undefined && (
-									<>
-										<div className="w-full bg-base-100 rounded-full h-2.5">
-											<div
-												className="bg-primary h-2.5 rounded-full"
-												style={{ width: `${course.progress}%` }}
-											></div>
-										</div>
-										<p className="mt-2 text-right text-sm font-semibold text-base-content/80">
-											{course.progress}%{" "}
-											{t("dashboard.complete", { ns: "translation" })}
-										</p>
-									</>
-								)}
-								<Link to={`/course/${course.id}`} className="block">
-									<Button className="w-full mt-4">
-										{t("dashboard.view_course", { ns: "translation" })}
-									</Button>
-								</Link>
-							</>
-						) : (
-							<div className="flex items-center justify-between mt-4">
-								<p className="text-2xl font-bold text-primary">
-									{course.price != null && course.price > 0
-										? `${course.price}₮`
-										: t("free", { ns: "translation" })}
-								</p>
-
-								<Link to={`/course/${course.id}`} className="block">
-									<Button>
-										{t("dashboard.subscribe", { ns: "translation" })}
-									</Button>
-								</Link>
-							</div>
-						)}
+				{/* Hover Arrow Icon */}
+				<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+					<div className="w-16 h-16 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center shadow-2xl">
+						<FaArrowRight className="text-2xl text-brand-lavender" />
 					</div>
 				</div>
 			</div>
+
+			{/* Content Section */}
+			<div className="p-6">
+				<Link to={`/course/${course.id}`} className="block">
+					{/* Title */}
+					<h3 className="text-xl font-black text-base-content group-hover:text-brand-lavender transition-colors duration-200 mb-2 line-clamp-2 min-h-[3.5rem]">
+						{course.title}
+					</h3>
+
+					{/* Instructor */}
+					<div className="flex items-center gap-2 text-sm text-base-content/60 mb-4">
+						<FaGraduationCap className="text-brand-coral" />
+						<span className="font-medium">
+							{course.teacher?.name || t("courses.instructor_unknown")}
+						</span>
+					</div>
+				</Link>
+
+				{/* Stats Row */}
+				<div className="flex items-center gap-4 mb-4 pb-4 border-b-2 border-gray-100">
+					<div className="flex items-center gap-1.5 text-xs text-base-content/60">
+						<FaBook className="text-brand-lavender" />
+						<span className="font-semibold">{course.lessons?.length || 0} {t("course.lessons", { defaultValue: "Lessons" })}</span>
+					</div>
+					<div className="flex items-center gap-1.5 text-xs text-base-content/60">
+						<FaClock className="text-brand-coral" />
+						<span className="font-semibold">{t("dashboard.lifetime", { defaultValue: "Lifetime" })}</span>
+					</div>
+				</div>
+
+				{/* Action Section */}
+				{course.subscribed ? (
+					<div className="space-y-4">
+						{/* Progress Bar */}
+						{course.progress !== undefined && (
+							<div>
+								<div className="flex justify-between items-center mb-2">
+									<span className="text-xs font-bold text-base-content/60 uppercase">
+										{t("course.progress")}
+									</span>
+									<span className="text-sm font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
+										{course.progress}%
+									</span>
+								</div>
+								<div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+									<motion.div
+										initial={{ width: 0 }}
+										animate={{ width: `${course.progress}%` }}
+										transition={{ duration: 1, ease: "easeOut" }}
+										className="bg-gradient-to-r from-brand-lavender to-brand-coral h-2.5 rounded-full"
+									></motion.div>
+								</div>
+							</div>
+						)}
+
+						{/* Continue Button */}
+						<Link to={`/course/${course.id}`} className="block">
+							<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+								<Button className="w-full bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all">
+									<FaBook className="mr-2" />
+									{t("dashboard.continue", { defaultValue: "Continue Learning" })}
+								</Button>
+							</motion.div>
+						</Link>
+					</div>
+				) : (
+					<div className="space-y-4">
+						{/* Price and Enroll Button */}
+						<div className="flex items-center justify-between">
+							<div>
+								{course.price != null && course.price > 0 ? (
+									<div className="text-3xl font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
+										₮{course.price.toLocaleString()}
+									</div>
+								) : (
+									<div className="text-3xl font-black bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">
+										{t("free", { defaultValue: "FREE" })}
+									</div>
+								)}
+							</div>
+						</div>
+
+						{/* Enroll Button */}
+						<Link to={`/course/${course.id}`} className="block">
+							<motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+								<Button className="w-full bg-gradient-to-r from-brand-lavender via-brand-coral to-brand-yellow text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all">
+									<FaGraduationCap className="mr-2" />
+									{t("dashboard.enroll", { defaultValue: "Enroll Now" })}
+								</Button>
+							</motion.div>
+						</Link>
+					</div>
+				)}
+			</div>
+
+			{/* Decorative corner accent */}
+			<div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-brand-lavender/10 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 		</motion.div>
 	);
 };
