@@ -399,6 +399,7 @@ const CoursePage = () => {
 			const response = await API.validatePromoCode({
 				code: trimmedCode,
 				basePrice: course?.price,
+				courseId: courseId, // Pass courseId to validate scope
 			});
 			const result = response.data.data;
 			setPromoCodeValidation({

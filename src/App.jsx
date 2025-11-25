@@ -19,6 +19,15 @@ import NotFoundPage from "./components/NotFoundPage";
 import AuthCallbackPage from "./components/AuthCallbackPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
+// Teacher Portal Components
+import TeacherLayout from "./components/teacher-portal/TeacherLayout";
+import TeacherDashboard from "./components/teacher-portal/TeacherDashboard";
+import CourseManagement from "./components/teacher-portal/CourseManagement";
+import CourseForm from "./components/teacher-portal/CourseForm";
+import LessonManagement from "./components/teacher-portal/LessonManagement";
+import BookingManagement from "./components/teacher-portal/BookingManagement";
+import AvailabilityScheduler from "./components/teacher-portal/AvailabilityScheduler";
+
 function App() {
 	return (
 		<Router>
@@ -49,6 +58,19 @@ function App() {
 							<Route path="/my-bookings" element={<MyBookingsPage />} />
 							<Route path="/course/:courseId" element={<CoursePage />} />
 							<Route path="/profile" element={<ProfilePage />} />
+						</Route>
+					</Route>
+
+					{/* --- Teacher Portal Routes (Teachers Only) --- */}
+					<Route element={<PrivateRoute allowedRoles={['teacher', 'admin']} />}>
+						<Route element={<TeacherLayout />}>
+							<Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+							<Route path="/teacher/courses" element={<CourseManagement />} />
+							<Route path="/teacher/courses/new" element={<CourseForm />} />
+							<Route path="/teacher/courses/:courseId/edit" element={<CourseForm />} />
+							<Route path="/teacher/courses/:courseId/lessons" element={<LessonManagement />} />
+							<Route path="/teacher/bookings" element={<BookingManagement />} />
+							<Route path="/teacher/availability" element={<AvailabilityScheduler />} />
 						</Route>
 					</Route>
 

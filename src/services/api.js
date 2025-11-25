@@ -32,6 +32,11 @@ axiosInstance.interceptors.response.use(
 );
 
 const API = {
+	// Expose base URL for image/file paths
+	defaults: {
+		baseURL: API_URL,
+	},
+
 	// --- Auth ---
 	login: (email, password) =>
 		axiosInstance.post("/users/login", { email, password }),
@@ -59,6 +64,7 @@ const API = {
 
 	// --- Courses ---
 	getAllCourses: () => axiosInstance.get("/courses"),
+	getCourses: (params) => axiosInstance.get("/courses", { params }),
 	getCourse: (id) => axiosInstance.get(`/courses/${id}`),
 	createCourse: (data) => axiosInstance.post("/courses", data),
 	updateCourse: (id, data) => axiosInstance.put(`/courses/${id}`, data),
@@ -83,6 +89,15 @@ const API = {
 	deleteLesson: (id) => axiosInstance.delete(`/lessons/${id}`),
 	markLessonAsComplete: (id) => axiosInstance.post(`/lessons/${id}/complete`),
 	streamVideo: (id) => axiosInstance.get(`/lessons/${id}/stream`),
+
+	// --- Lesson Publication Workflow ---
+	requestLessonPublication: (id) =>
+		axiosInstance.post(`/lessons/${id}/request-publish`),
+	approveLessonPublication: (id) =>
+		axiosInstance.post(`/lessons/${id}/approve-publish`),
+	rejectLessonPublication: (id, reason) =>
+		axiosInstance.post(`/lessons/${id}/reject-publish`, { reason }),
+	getPendingLessons: () => axiosInstance.get("/lessons/pending-approval"),
 
 	// --- Exercises (from exercise.js) ---
 	getExercises: (params) => axiosInstance.get("/exercises", { params }),
@@ -119,8 +134,14 @@ const API = {
 	// --- Teacher Availability ---
 	getTeacherAvailability: (teacherId) =>
 		axiosInstance.get(`/teachers/${teacherId}/availability`),
+	setTeacherAvailability: (teacherId, data) =>
+		axiosInstance.post(`/teachers/${teacherId}/availability`, data),
 	getTeacherBlockedDates: (teacherId) =>
 		axiosInstance.get(`/teachers/${teacherId}/blocked-dates`),
+	addTeacherBlockedDate: (teacherId, data) =>
+		axiosInstance.post(`/teachers/${teacherId}/blocked-dates`, data),
+	removeTeacherBlockedDate: (teacherId, blockId) =>
+		axiosInstance.delete(`/teachers/${teacherId}/blocked-dates/${blockId}`),
 	getAvailableSlots: (teacherId, params) =>
 		axiosInstance.get(`/teachers/${teacherId}/available-slots`, { params }),
 	checkAvailability: (teacherId, params) =>
