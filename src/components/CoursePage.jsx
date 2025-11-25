@@ -82,9 +82,9 @@ const CoursePage = () => {
 	 */
 	useEffect(() => {
 		if (isMobileSidebarOpen) {
-			document.body.style.overflow = 'hidden';
+			document.body.style.overflow = "hidden";
 		} else {
-			document.body.style.overflow = 'unset';
+			document.body.style.overflow = "unset";
 		}
 
 		const handleResize = () => {
@@ -93,11 +93,11 @@ const CoursePage = () => {
 			}
 		};
 
-		window.addEventListener('resize', handleResize);
+		window.addEventListener("resize", handleResize);
 
 		return () => {
-			document.body.style.overflow = 'unset';
-			window.removeEventListener('resize', handleResize);
+			document.body.style.overflow = "unset";
+			window.removeEventListener("resize", handleResize);
 		};
 	}, [isMobileSidebarOpen]);
 
@@ -140,9 +140,7 @@ const CoursePage = () => {
 			} catch (err) {
 				console.error("Failed to fetch course:", err);
 				setError(
-					err.response?.data?.error ||
-					err.message ||
-					"Failed to load course",
+					err.response?.data?.error || err.message || "Failed to load course",
 				);
 			} finally {
 				setLoading(false);
@@ -215,7 +213,9 @@ const CoursePage = () => {
 						});
 
 						hlsRef.current = hls;
-					} else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
+					} else if (
+						videoElement.canPlayType("application/vnd.apple.mpegurl")
+					) {
 						videoElement.src = videoUrl;
 						setVideoType("hls");
 					} else {
@@ -407,8 +407,7 @@ const CoursePage = () => {
 			console.error("Promo code validation failed:", err);
 			setPromoCodeValidation({
 				status: "invalid",
-				message:
-					err.response?.data?.error || "Invalid or expired promo code",
+				message: err.response?.data?.error || "Invalid or expired promo code",
 				discountedPrice: null,
 				codeApplied: null,
 			});
@@ -416,7 +415,10 @@ const CoursePage = () => {
 	}, [promoCodeInput, courseId]);
 
 	const displayPrice = useMemo(() => {
-		if (promoCodeValidation.status === "valid" && promoCodeValidation.discountedPrice != null) {
+		if (
+			promoCodeValidation.status === "valid" &&
+			promoCodeValidation.discountedPrice != null
+		) {
 			return promoCodeValidation.discountedPrice;
 		}
 		return course?.price;
@@ -470,7 +472,10 @@ const CoursePage = () => {
 			/>
 
 			{/* Animated gradient blobs */}
-			<div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ top: "5rem" }}>
+			<div
+				className="fixed inset-0 overflow-hidden pointer-events-none"
+				style={{ top: "5rem" }}
+			>
 				<motion.div
 					className="absolute top-0 right-0 w-96 h-96 rounded-full bg-brand-coral/10 blur-3xl"
 					animate={{
@@ -509,7 +514,11 @@ const CoursePage = () => {
 							onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
 							className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-brand-lavender to-brand-coral text-white shadow-2xl flex items-center justify-center hover:shadow-3xl transition-all active:scale-95 hover:scale-110"
 						>
-							{isMobileSidebarOpen ? <FaTimes size={22} /> : <FaBars size={22} />}
+							{isMobileSidebarOpen ? (
+								<FaTimes size={22} />
+							) : (
+								<FaBars size={22} />
+							)}
 							{!isMobileSidebarOpen && course?.lessons?.length > 0 && (
 								<span className="absolute -top-1 -right-1 w-6 h-6 bg-brand-yellow text-xs font-bold rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg">
 									{course.lessons.length}
@@ -526,7 +535,8 @@ const CoursePage = () => {
 						)}
 
 						{/* Lesson Sidebar */}
-						<aside className={`
+						<aside
+							className={`
 							fixed md:relative
 							inset-y-0 left-0
 							w-4/5 md:w-1/3 lg:w-1/4
@@ -535,10 +545,11 @@ const CoursePage = () => {
 							flex-shrink-0 overflow-y-auto
 							z-40
 							transition-transform duration-300 ease-in-out
-							${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+							${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"}
 							md:translate-x-0
 							shadow-xl
-						`}>
+						`}
+						>
 							{/* Sidebar Header with Close Button */}
 							<div className="flex items-center justify-between mb-6">
 								<div className="flex items-center gap-3 flex-1">
@@ -570,7 +581,7 @@ const CoursePage = () => {
 								>
 									<div className="flex justify-between items-center mb-3">
 										<span className="text-sm font-bold text-base-content">
-											{t("course.progress")}
+											{t("course_page.progress")}
 										</span>
 										<span className="text-lg font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
 											{course.progress}%
@@ -607,16 +618,20 @@ const CoursePage = () => {
 													<button
 														onClick={() => handleSelectLesson(lesson)}
 														className={`w-full text-left p-4 rounded-xl transition-all duration-200 flex items-center justify-between group ${isSelected
-															? "bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold shadow-lg scale-105"
-															: "hover:bg-gray-100 text-base-content hover:scale-102"
+																? "bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold shadow-lg scale-105"
+																: "hover:bg-gray-100 text-base-content hover:scale-102"
 															}`}
 													>
 														<div className="flex items-center gap-3 flex-1 min-w-0">
-															<div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected
-																? "bg-white/20"
-																: "bg-gradient-to-br from-brand-lavender/20 to-brand-coral/20"
-																}`}>
-																<span className={`text-sm font-bold ${isSelected ? "text-white" : "text-brand-lavender"}`}>
+															<div
+																className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isSelected
+																		? "bg-white/20"
+																		: "bg-gradient-to-br from-brand-lavender/20 to-brand-coral/20"
+																	}`}
+															>
+																<span
+																	className={`text-sm font-bold ${isSelected ? "text-white" : "text-brand-lavender"}`}
+																>
 																	{index + 1}
 																</span>
 															</div>
@@ -627,7 +642,9 @@ const CoursePage = () => {
 														{isCompleted && (
 															<FaCheckCircle
 																className={`flex-shrink-0 ml-2 ${isSelected ? "text-white" : "text-green-500"}`}
-																title={t("course.completed", { defaultValue: "Completed" })}
+																title={t("course.completed", {
+																	defaultValue: "Completed",
+																})}
 															/>
 														)}
 													</button>
@@ -637,7 +654,9 @@ const CoursePage = () => {
 									</ul>
 								) : (
 									<p className="text-sm text-base-content/70 text-center py-8">
-										{t("course.no_lessons", { defaultValue: "No lessons available" })}
+										{t("course.no_lessons", {
+											defaultValue: "No lessons available",
+										})}
 									</p>
 								)}
 							</div>
@@ -668,7 +687,9 @@ const CoursePage = () => {
 										{selectedLesson.completions?.length > 0 ? (
 											<div className="flex items-center gap-2 px-5 py-3 bg-green-100 text-green-700 rounded-full border-2 border-green-300 font-bold shadow-lg">
 												<FaCheckCircle className="text-lg" />
-												<span>{t("course.completed", { defaultValue: "Completed" })}</span>
+												<span>
+													{t("course.completed", { defaultValue: "Completed" })}
+												</span>
 											</div>
 										) : (
 											<Button
@@ -679,12 +700,16 @@ const CoursePage = () => {
 												{completingLesson ? (
 													<>
 														<FaSpinner className="animate-spin mr-2" />
-														{t("course.marking_complete", { defaultValue: "Marking as complete..." })}
+														{t("course.marking_complete", {
+															defaultValue: "Marking as complete...",
+														})}
 													</>
 												) : (
 													<>
 														<FaCheck className="mr-2" />
-														{t("course.mark_complete", { defaultValue: "Mark as Complete" })}
+														{t("course.mark_complete", {
+															defaultValue: "Mark as Complete",
+														})}
 													</>
 												)}
 											</Button>
@@ -704,7 +729,9 @@ const CoursePage = () => {
 													<FaCheckCircle className="text-white text-xl" />
 												</div>
 												<span className="text-green-700 font-bold">
-													{t("course.lesson_completed_success", { defaultValue: "Lesson completed successfully!" })}
+													{t("course.lesson_completed_success", {
+														defaultValue: "Lesson completed successfully!",
+													})}
 												</span>
 											</motion.div>
 										)}
@@ -729,7 +756,8 @@ const CoursePage = () => {
 														<option value={-1}>Auto</option>
 														{qualityLevels.map((level) => (
 															<option key={level.index} value={level.index}>
-																{level.name} ({Math.round(level.bitrate / 1000)}kbps)
+																{level.name} ({Math.round(level.bitrate / 1000)}
+																kbps)
 															</option>
 														))}
 													</select>
@@ -757,7 +785,9 @@ const CoursePage = () => {
 										<div className="flex flex-col items-center justify-center w-full h-64 mb-8 bg-gradient-to-br from-gray-100 to-gray-200 rounded-3xl border-2 border-gray-300">
 											<FaPlay className="text-gray-400 text-5xl mb-4" />
 											<p className="text-gray-500 font-medium">
-												{t("course.no_video", { defaultValue: "No video available" })}
+												{t("course.no_video", {
+													defaultValue: "No video available",
+												})}
 											</p>
 										</div>
 									)}
@@ -808,7 +838,9 @@ const CoursePage = () => {
 																<div className="space-y-4">
 																	<Input
 																		type="text"
-																		placeholder={t("course.your_answer", { defaultValue: "Your answer..." })}
+																		placeholder={t("course.your_answer", {
+																			defaultValue: "Your answer...",
+																		})}
 																		value={exerciseAnswers[exercise.id] || ""}
 																		onChange={(e) =>
 																			handleExerciseAnswerChange(
@@ -817,7 +849,9 @@ const CoursePage = () => {
 																			)
 																		}
 																		className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-lavender"
-																		disabled={submittingExercise === exercise.id}
+																		disabled={
+																			submittingExercise === exercise.id
+																		}
 																	/>
 																	<Button
 																		onClick={() =>
@@ -832,10 +866,14 @@ const CoursePage = () => {
 																		{submittingExercise === exercise.id ? (
 																			<>
 																				<FaSpinner className="animate-spin mr-2" />
-																				{t("course.submitting", { defaultValue: "Submitting..." })}
+																				{t("course.submitting", {
+																					defaultValue: "Submitting...",
+																				})}
 																			</>
 																		) : (
-																			t("course.submit_answer", { defaultValue: "Submit Answer" })
+																			t("course.submit_answer", {
+																				defaultValue: "Submit Answer",
+																			})
 																		)}
 																	</Button>
 																</div>
@@ -843,8 +881,8 @@ const CoursePage = () => {
 																// --- Exercise Result ---
 																<div
 																	className={`p-6 rounded-2xl ${submission.isCorrect
-																		? "bg-green-100 border-2 border-green-400"
-																		: "bg-red-100 border-2 border-red-400"
+																			? "bg-green-100 border-2 border-green-400"
+																			: "bg-red-100 border-2 border-red-400"
 																		}`}
 																>
 																	<p className="font-bold mb-3 flex items-center text-lg">
@@ -854,7 +892,9 @@ const CoursePage = () => {
 																					<FaCheckCircle className="text-white" />
 																				</div>
 																				<span className="text-green-700">
-																					{t("course.correct", { defaultValue: "Correct!" })}
+																					{t("course.correct", {
+																						defaultValue: "Correct!",
+																					})}
 																				</span>
 																			</>
 																		) : (
@@ -863,7 +903,9 @@ const CoursePage = () => {
 																					<FaInfoCircle className="text-white" />
 																				</div>
 																				<span className="text-red-700">
-																					{t("course.incorrect", { defaultValue: "Incorrect" })}
+																					{t("course.incorrect", {
+																						defaultValue: "Incorrect",
+																					})}
 																				</span>
 																			</>
 																		)}
@@ -871,16 +913,28 @@ const CoursePage = () => {
 																	<div className="space-y-2">
 																		<p className="text-sm">
 																			<strong className="font-bold">
-																				{t("course.your_answer", { defaultValue: "Your answer" })}:
+																				{t("course.your_answer", {
+																					defaultValue: "Your answer",
+																				})}
+																				:
 																			</strong>{" "}
-																			<span className={submission.isCorrect ? "text-green-700" : "text-red-700"}>
+																			<span
+																				className={
+																					submission.isCorrect
+																						? "text-green-700"
+																						: "text-red-700"
+																				}
+																			>
 																				{submission.submittedAnswer}
 																			</span>
 																		</p>
 																		{!submission.isCorrect && (
 																			<p className="text-sm">
 																				<strong className="font-bold">
-																					{t("course.correct_answer", { defaultValue: "Correct answer" })}:
+																					{t("course.correct_answer", {
+																						defaultValue: "Correct answer",
+																					})}
+																					:
 																				</strong>{" "}
 																				<span className="text-green-700 font-semibold">
 																					{submission.correctAnswer}
@@ -896,7 +950,9 @@ const CoursePage = () => {
 											</ul>
 										) : (
 											<p className="text-base-content/70 text-center py-8 bg-gray-100 rounded-2xl">
-												{t("course.no_exercises", { defaultValue: "No exercises for this lesson" })}
+												{t("course.no_exercises", {
+													defaultValue: "No exercises for this lesson",
+												})}
 											</p>
 										)}
 									</div>
@@ -912,7 +968,9 @@ const CoursePage = () => {
 										<FaBook className="text-4xl text-brand-lavender" />
 									</motion.div>
 									<p className="text-xl font-bold text-base-content/70">
-										{t("course.select_lesson", { defaultValue: "Select a lesson to begin" })}
+										{t("course.select_lesson", {
+											defaultValue: "Select a lesson to begin",
+										})}
 									</p>
 								</div>
 							)}
@@ -979,23 +1037,39 @@ const CoursePage = () => {
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
 									<div className="bg-gradient-to-br from-brand-lavender/10 to-brand-coral/10 p-4 rounded-2xl border-2 border-brand-lavender/20 text-center">
 										<FaBook className="text-brand-lavender text-2xl mx-auto mb-2" />
-										<div className="text-2xl font-black text-base-content">{course.lessons?.length || 0}</div>
-										<div className="text-xs text-base-content/60 font-medium">Lessons</div>
+										<div className="text-2xl font-black text-base-content">
+											{course.lessons?.length || 0}
+										</div>
+										<div className="text-xs text-base-content/60 font-medium">
+											Lessons
+										</div>
 									</div>
 									<div className="bg-gradient-to-br from-brand-coral/10 to-brand-yellow/10 p-4 rounded-2xl border-2 border-brand-coral/20 text-center">
 										<FaClock className="text-brand-coral text-2xl mx-auto mb-2" />
-										<div className="text-2xl font-black text-base-content">∞</div>
-										<div className="text-xs text-base-content/60 font-medium">Lifetime Access</div>
+										<div className="text-2xl font-black text-base-content">
+											∞
+										</div>
+										<div className="text-xs text-base-content/60 font-medium">
+											Lifetime Access
+										</div>
 									</div>
 									<div className="bg-gradient-to-br from-brand-yellow/10 to-brand-lavender/10 p-4 rounded-2xl border-2 border-brand-yellow/20 text-center">
 										<FaGraduationCap className="text-brand-yellow text-2xl mx-auto mb-2" />
-										<div className="text-2xl font-black text-base-content">∞</div>
-										<div className="text-xs text-base-content/60 font-medium">Students</div>
+										<div className="text-2xl font-black text-base-content">
+											∞
+										</div>
+										<div className="text-xs text-base-content/60 font-medium">
+											Students
+										</div>
 									</div>
 									<div className="bg-gradient-to-br from-brand-coral/10 to-brand-lavender/10 p-4 rounded-2xl border-2 border-brand-coral/20 text-center">
 										<FaStar className="text-brand-coral text-2xl mx-auto mb-2" />
-										<div className="text-2xl font-black text-base-content">5.0</div>
-										<div className="text-xs text-base-content/60 font-medium">Rating</div>
+										<div className="text-2xl font-black text-base-content">
+											5.0
+										</div>
+										<div className="text-xs text-base-content/60 font-medium">
+											Rating
+										</div>
 									</div>
 								</div>
 
@@ -1007,13 +1081,17 @@ const CoursePage = () => {
 											className="flex items-center gap-2 text-sm font-bold text-base-content mb-3"
 										>
 											<FaTag className="text-brand-coral" />
-											{t("course.promo_code_label", { defaultValue: "Have a promo code?" })}
+											{t("course.promo_code_label", {
+												defaultValue: "Have a promo code?",
+											})}
 										</label>
 										<div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
 											<Input
 												type="text"
 												id="promoCode"
-												placeholder={t("course.promo_code_placeholder", { defaultValue: "Enter code..." })}
+												placeholder={t("course.promo_code_placeholder", {
+													defaultValue: "Enter code...",
+												})}
 												value={promoCodeInput}
 												onChange={handlePromoCodeInputChange}
 												className="flex-grow uppercase text-base px-4 py-3 border-2 border-gray-200 rounded-xl font-bold"
@@ -1031,7 +1109,9 @@ const CoursePage = () => {
 												{promoCodeValidation.status === "validating" && (
 													<FaSpinner className="animate-spin mr-2" />
 												)}
-												{t("course.promo_code_apply", { defaultValue: "Apply" })}
+												{t("course.promo_code_apply", {
+													defaultValue: "Apply",
+												})}
 											</Button>
 										</div>
 
