@@ -348,11 +348,12 @@ const CoursePage = () => {
 			setSubscriptionLoading(true);
 			setSubscriptionError(null);
 			try {
-				const requestBody =
-					promoCodeValidation.status === "valid" &&
-						promoCodeValidation.codeApplied
-						? { promoCode: promoCodeValidation.codeApplied }
-						: {};
+				const requestBody = {};
+
+				// Only add promoCode to body if validation is successful
+				if (promoCodeValidation.status === "valid" && promoCodeValidation.codeApplied) {
+					requestBody.promoCode = promoCodeValidation.codeApplied;
+				}
 
 				await API.createSubscription(courseId, requestBody);
 				setIsSubscriptionModalOpen(false);
