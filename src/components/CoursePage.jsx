@@ -169,65 +169,78 @@ const CoursePage = () => {
 		}
 
 		const videoElement = videoRef.current;
-		const videoPath = selectedLesson.videoPath;
-		const videoUrlBase = `${API_URL}/`;
-		const videoUrl = videoPath.startsWith("http")
-			? videoPath
-			: `${videoUrlBase}${videoPath}`;
 
-		if (videoPath.endsWith(".m3u8")) {
-			setVideoType("hls");
+		const fetchVideoInfo = async () => {
+			try {
+				const response = await API.streamVideo(selectedLesson.id);
+				const streamData = response.data.data;
+				console.log("Stream type:", streamData.type);
+				console.log("Stream URL:", streamData.url);
 
-			if (Hls.isSupported()) {
-				if (hlsRef.current) {
-					hlsRef.current.destroy();
-				}
+				if (streamData.type === "hls") {
+					setVideoType("hls");
+					// Use CloudFront URL directly (already a full URL from backend)
+					const videoUrl = streamData.url;
 
-				const hls = new Hls({
-					xhrSetup: (xhr) => {
-						xhr.withCredentials = true;
-					},
-				});
+					if (Hls.isSupported()) {
+						if (hlsRef.current) {
+							hlsRef.current.destroy();
+						}
 
-				hls.loadSource(videoUrl);
-				hls.attachMedia(videoElement);
+						const hls = new Hls({
+							xhrSetup: (xhr) => {
+								xhr.withCredentials = true;
+							},
+						});
 
-				hls.on(Hls.Events.MANIFEST_PARSED, () => {
-					const levels = hls.levels.map((level, index) => ({
-						index: index,
-						name: `${level.height}p`,
-						height: level.height,
-						width: level.width,
-						bitrate: level.bitrate,
-					}));
-					setQualityLevels(levels);
-					setCurrentQuality(-1);
-				});
+						hls.loadSource(videoUrl);
+						hls.attachMedia(videoElement);
 
-				hls.on(Hls.Events.ERROR, (event, data) => {
-					if (data.fatal) {
-						console.error("HLS Error:", data);
+						hls.on(Hls.Events.MANIFEST_PARSED, () => {
+							const levels = hls.levels.map((level, index) => ({
+								index: index,
+								name: `${level.height}p`,
+								height: level.height,
+								width: level.width,
+								bitrate: level.bitrate,
+							}));
+							setQualityLevels(levels);
+							setCurrentQuality(-1);
+						});
+
+						hls.on(Hls.Events.ERROR, (event, data) => {
+							if (data.fatal) {
+								console.error("HLS Error:", data);
+							}
+						});
+
+						hlsRef.current = hls;
+					} else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
+						videoElement.src = videoUrl;
+						setVideoType("hls");
+					} else {
+						console.error("HLS not supported");
 					}
-				});
+				} else {
+					setVideoType("regular");
+					// Use CloudFront URL directly (already a full URL from backend)
+					setVideoSrc(streamData.url);
+					setQualityLevels([]);
+					setCurrentQuality(-1);
 
-				hlsRef.current = hls;
-			} else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
-				videoElement.src = videoUrl;
-				setVideoType("hls");
-			} else {
-				console.error("HLS not supported");
+					if (hlsRef.current) {
+						hlsRef.current.destroy();
+						hlsRef.current = null;
+					}
+				}
+			} catch (error) {
+				console.error("Failed to fetch video info:", error);
+				setVideoType(null);
+				setVideoSrc("");
 			}
-		} else {
-			setVideoType("regular");
-			setVideoSrc(videoUrl);
-			setQualityLevels([]);
-			setCurrentQuality(-1);
+		};
 
-			if (hlsRef.current) {
-				hlsRef.current.destroy();
-				hlsRef.current = null;
-			}
-		}
+		fetchVideoInfo();
 
 		return () => {
 			if (hlsRef.current) {
@@ -235,7 +248,7 @@ const CoursePage = () => {
 				hlsRef.current = null;
 			}
 		};
-	}, [selectedLesson]);
+	}, [selectedLesson?.id, selectedLesson?.videoPath]); // Re-run if lesson or its video path changes
 
 	// --- Handlers ---
 
