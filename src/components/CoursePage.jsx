@@ -396,7 +396,10 @@ const CoursePage = () => {
 
 		setPromoCodeValidation((prev) => ({ ...prev, status: "validating" }));
 		try {
-			const response = await API.validatePromoCode(courseId, trimmedCode);
+			const response = await API.validatePromoCode({
+				code: trimmedCode,
+				basePrice: course?.price,
+			});
 			const result = response.data.data;
 			setPromoCodeValidation({
 				status: "valid",
@@ -413,7 +416,7 @@ const CoursePage = () => {
 				codeApplied: null,
 			});
 		}
-	}, [promoCodeInput, courseId]);
+	}, [promoCodeInput, course?.price]);
 
 	const displayPrice = useMemo(() => {
 		if (
