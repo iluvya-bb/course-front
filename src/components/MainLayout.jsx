@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import { Button } from "./ui/button";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Breadcrumb from "./ui/Breadcrumb";
@@ -12,8 +13,9 @@ import {
 	FaBook,
 	FaCalendarAlt,
 	FaChalkboardTeacher,
-	FaBars,
-	FaTimes,
+	FaCertificate,
+	FaUser,
+	FaUserCircle,
 } from "react-icons/fa";
 
 const MainLayout = () => {
@@ -22,26 +24,56 @@ const MainLayout = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
   const [logo, setLogo] = useState(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Define navigation links
+  // Define navigation links with colors
   const navLinks = [
     {
       path: "/dashboard",
       label: t("nav.dashboard", { defaultValue: "Нүүр" }),
       icon: FaHome,
+      gradient: "from-brand-lavender to-purple-600",
+      shadowColor: "#7776bc",
+    },
+    {
+      path: "/profile",
+      label: t("nav.profile", { defaultValue: "Profile" }),
+      icon: FaUserCircle,
+      gradient: "from-pink-500 to-rose-600",
+      shadowColor: "#ff6b9d",
     },
     {
       path: "/book",
       label: t("nav.booking", { defaultValue: "Багш захиалах" }),
       icon: FaCalendarAlt,
+      gradient: "from-brand-coral to-pink-600",
+      shadowColor: "#ff6b9d",
     },
     {
       path: "/my-bookings",
       label: t("nav.my_bookings", { defaultValue: "Миний захиалгууд" }),
       icon: FaCalendarAlt,
+      gradient: "from-brand-yellow to-orange-500",
+      shadowColor: "#feca57",
+    },
+    {
+      path: "/certificates/validate",
+      label: t("nav.verify_certificates", { defaultValue: "Verify Certificates" }),
+      icon: FaCertificate,
+      gradient: "from-brand-lime to-green-500",
+      shadowColor: "#c7ecee",
     },
   ];
+
+  // Add teacher dashboard link if user is a teacher
+  if (user && (user.role === "teacher" || user.role === "admin")) {
+    navLinks.push({
+      path: "/teacher/dashboard",
+      label: t("nav.teacher_dashboard", { defaultValue: "Teacher Dashboard" }),
+      icon: FaChalkboardTeacher,
+      gradient: "from-blue-500 to-indigo-600",
+      shadowColor: "#00d2ff",
+    });
+  }
 
   // Fetch logo from parameters
   useEffect(() => {
@@ -61,116 +93,224 @@ const MainLayout = () => {
   }, []);
 
   return (
-    <div className="flex flex-col w-full min-h-screen bg-base-100 text-base-content">
-      {/* Navbar */}
-      <nav className="bg-base-100/80 backdrop-blur-md border-b-2 border-neutral fixed w-full top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 py-3">
-          <div className="flex justify-between items-center">
-            {/* Logo and Title */}
-            <div className="flex items-center">
-              <Link to="/dashboard" className="flex items-center group">
+    <div className="flex min-h-screen bg-base-100 text-base-content">
+      {/* Quirky Fun Sidebar */}
+      <aside className="w-20 lg:w-64 bg-neutral border-r-4 border-brand-lavender/30 flex-shrink-0 relative overflow-hidden">
+        {/* Animated gradient blobs in sidebar */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+          <motion.div
+            className="absolute -top-20 -left-20 w-40 h-40 rounded-full bg-brand-coral blur-2xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              x: [0, 20, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute bottom-0 right-0 w-40 h-40 rounded-full bg-brand-yellow blur-2xl"
+            animate={{
+              scale: [1, 1.5, 1],
+              x: [0, -20, 0],
+              y: [0, -20, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+
+        {/* Sidebar content */}
+        <div className="relative z-10 h-full flex flex-col">
+          {/* Logo Section */}
+          <Link to="/dashboard" className="p-4 lg:p-6 group">
+            <motion.div
+              whileHover={{ rotate: [0, -5, 5, -5, 0] }}
+              transition={{ duration: 0.5 }}
+              className="flex items-center justify-center lg:justify-start"
+            >
+              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-gradient-to-br from-brand-lavender to-brand-coral p-2 shadow-lg group-hover:shadow-xl transition-shadow">
                 <img
                   src={logo || "/logo.svg"}
                   alt={t("dashboard.logo_alt")}
-                  className="h-8 w-auto transition-transform duration-300 group-hover:scale-110"
+                  className="w-full h-full object-contain"
                 />
-                <h1 className="text-xl sm:text-2xl font-bold text-base-content ml-2 group-hover:text-primary transition-colors duration-300">
+              </div>
+              <div className="hidden lg:block ml-3">
+                <h1 className="text-xl font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
                   {t("dashboard.heading")}
                 </h1>
-              </Link>
-            </div>
-
-            {/* Desktop Navigation Links */}
-            {user && (
-              <div className="hidden lg:flex items-center space-x-1">
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  const isActive = location.pathname === link.path;
-                  return (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
-                        isActive
-                          ? "bg-primary text-white font-semibold"
-                          : "text-base-content hover:bg-base-200 hover:text-primary"
-                      }`}
-                    >
-                      <Icon className="text-sm" />
-                      <span className="text-sm">{link.label}</span>
-                    </Link>
-                  );
-                })}
               </div>
-            )}
+            </motion.div>
+          </Link>
 
-            {/* Right Side Controls */}
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              <LanguageSwitcher />
-              {user ? (
-                <>
-                  {/* Mobile Menu Toggle */}
-                  <button
-                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    className="lg:hidden p-2 rounded-md hover:bg-base-200"
+          {/* Navigation Links */}
+          {user && (
+            <nav className="flex-1 px-2 lg:px-4 py-6 space-y-3">
+              {navLinks.map((link, index) => {
+                const Icon = link.icon;
+                const isActive = location.pathname === link.path;
+                return (
+                  <motion.div
+                    key={link.path}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
                   >
-                    {mobileMenuOpen ? (
-                      <FaTimes className="text-xl" />
-                    ) : (
-                      <FaBars className="text-xl" />
-                    )}
-                  </button>
-                  <UserDropdown user={user} onLogout={logout} />
-                </>
-              ) : (
-                <Link to="/account">
-                  <Button variant="primary" size="sm">
+                    <Link
+                      to={link.path}
+                      className="block group"
+                    >
+                      <motion.div
+                        whileHover={{ scale: 1.05, x: 5 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`relative flex items-center lg:gap-3 p-3 lg:p-4 rounded-2xl transition-all ${
+                          isActive
+                            ? `bg-gradient-to-r ${link.gradient} text-white shadow-lg`
+                            : "bg-base-100 hover:bg-base-200"
+                        }`}
+                        style={{
+                          boxShadow: isActive
+                            ? `4px 4px 0px ${link.shadowColor}`
+                            : "none",
+                        }}
+                      >
+                        {/* Icon */}
+                        <motion.div
+                          animate={isActive ? { rotate: [0, -10, 10, -10, 0] } : {}}
+                          transition={{ duration: 0.5 }}
+                          className="flex-shrink-0"
+                        >
+                          <Icon
+                            className={`text-2xl lg:text-xl ${
+                              isActive ? "text-white" : "text-brand-lavender group-hover:text-brand-coral"
+                            }`}
+                          />
+                        </motion.div>
+
+                        {/* Label - hidden on mobile */}
+                        <span
+                          className={`hidden lg:block font-bold text-sm ${
+                            isActive ? "text-white" : "text-base-content"
+                          }`}
+                        >
+                          {link.label}
+                        </span>
+
+                        {/* Active indicator dot */}
+                        {isActive && (
+                          <motion.div
+                            layoutId="activeIndicator"
+                            className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                          />
+                        )}
+                      </motion.div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </nav>
+          )}
+
+          {/* Bottom section - User */}
+          <div className="p-2 lg:p-4 space-y-3 border-t-2 border-brand-lavender/20">
+            {/* User Section */}
+            {user ? (
+              <div className="flex items-center justify-center lg:justify-start">
+                <UserDropdown user={user} onLogout={logout} />
+              </div>
+            ) : (
+              <Link to="/account" className="block">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-gradient-to-r from-brand-lavender to-brand-coral text-white p-3 rounded-2xl text-center shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <FaUser className="text-xl mx-auto lg:hidden" />
+                  <span className="hidden lg:block font-bold text-sm">
                     {t("login.login_button")}
-                  </Button>
-                </Link>
-              )}
-            </div>
+                  </span>
+                </motion.div>
+              </Link>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content Area - Takes remaining space */}
+      <main className="flex-1 overflow-auto relative">
+        {/* Grid Background */}
+        <div
+          className="fixed inset-0 opacity-[0.08] pointer-events-none"
+          style={{
+            backgroundImage: `
+              linear-gradient(to right, #7776bc 1px, transparent 1px),
+              linear-gradient(to bottom, #7776bc 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
+            left: "5rem", // Start after sidebar on mobile
+          }}
+        />
+
+        {/* Animated gradient blobs */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ left: "5rem" }}>
+          <motion.div
+            className="absolute top-20 right-20 w-96 h-96 rounded-full bg-brand-coral/10 blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              x: [0, 50, 0],
+              y: [0, 30, 0],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          <motion.div
+            className="absolute bottom-20 left-20 w-96 h-96 rounded-full bg-brand-lavender/10 blur-3xl"
+            animate={{
+              scale: [1, 1.3, 1],
+              x: [0, -50, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+          {/* Breadcrumb and Language Switcher Row */}
+          <div className="flex items-center justify-between gap-4 mb-6">
+            <Breadcrumb />
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="flex-shrink-0"
+            >
+              <div className="bg-gradient-to-r from-brand-yellow/20 to-brand-coral/20 p-2 lg:p-3 rounded-2xl border-2 border-brand-yellow/30 shadow-md hover:shadow-lg transition-shadow">
+                <LanguageSwitcher />
+              </div>
+            </motion.div>
           </div>
 
-          {/* Mobile Navigation Menu */}
-          {user && mobileMenuOpen && (
-            <div className="lg:hidden mt-4 pb-4 border-t border-neutral pt-4">
-              <div className="flex flex-col space-y-2">
-                {navLinks.map((link) => {
-                  const Icon = link.icon;
-                  const isActive = location.pathname === link.path;
-                  return (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-md transition-all ${
-                        isActive
-                          ? "bg-primary text-white font-semibold"
-                          : "text-base-content hover:bg-base-200 hover:text-primary"
-                      }`}
-                    >
-                      <Icon />
-                      <span>{link.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <main className="flex-1 container mx-auto px-4 sm:px-6 py-8 pt-24">
-        <Breadcrumb />
-        <div className="mt-6">
-          <Outlet />
+          <div>
+            <Outlet />
+          </div>
         </div>
       </main>
-
-      {/* Optional Footer */}
-      {/* ... */}
     </div>
   );
 };

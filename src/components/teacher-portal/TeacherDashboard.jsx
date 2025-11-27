@@ -316,7 +316,7 @@ const TeacherDashboard = () => {
                           : "bg-red-100 text-red-800"
                       }`}
                     >
-                      {booking.status}
+                      {t(`teacher.bookings.status.${booking.status}`)}
                     </span>
                   </div>
                 </div>

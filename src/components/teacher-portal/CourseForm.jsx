@@ -22,6 +22,7 @@ const CourseForm = () => {
     description: "",
     price: "",
     categoryId: "",
+    categoryIds: [], // For multiple categories
     subscriptionDurationDays: "",
     isSpecial: false,
     isVisible: true,
@@ -50,11 +51,18 @@ const CourseForm = () => {
     try {
       const response = await API.getCourse(courseId);
       const course = response.data.data;
+
+      // Extract category IDs from the categories array if available
+      const existingCategoryIds = course.categories
+        ? course.categories.map(cat => cat.id)
+        : (course.categoryId ? [course.categoryId] : []);
+
       setFormData({
         title: course.title || "",
         description: course.description || "",
         price: course.price || "",
         categoryId: course.categoryId || "",
+        categoryIds: existingCategoryIds, // Pre-fill with existing categories
         subscriptionDurationDays: course.subscriptionDurationDays || "",
         isSpecial: course.isSpecial || false,
         isVisible: course.isVisible !== false,
@@ -77,6 +85,22 @@ const CourseForm = () => {
     }));
   };
 
+  const handleCategoryToggle = (categoryId) => {
+    setFormData((prev) => {
+      const categoryIds = prev.categoryIds || [];
+      const isSelected = categoryIds.includes(categoryId);
+
+      const newCategoryIds = isSelected
+        ? categoryIds.filter(id => id !== categoryId)
+        : [...categoryIds, categoryId];
+
+      return {
+        ...prev,
+        categoryIds: newCategoryIds,
+      };
+    });
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -96,6 +120,11 @@ const CourseForm = () => {
       data.append("price", formData.price);
       data.append("teacherId", user.teacherProfile?.id);
       if (formData.categoryId) data.append("categoryId", formData.categoryId);
+
+      // Append categoryIds for multiple categories
+      if (formData.categoryIds && formData.categoryIds.length > 0) {
+        data.append("categoryIds", JSON.stringify(formData.categoryIds));
+      }
       if (formData.subscriptionDurationDays) {
         data.append("subscriptionDurationDays", formData.subscriptionDurationDays);
       }
@@ -230,26 +259,44 @@ const CourseForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="categoryId">{t("teacher.course_form.category")}</Label>
-              <select
-                id="categoryId"
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleInputChange}
-                className="mt-2 w-full px-4 py-3 border-2 border-neutral rounded-lg focus:border-primary focus:outline-none transition-all"
-              >
-                <option value="">{t("teacher.course_form.no_category")}</option>
-                {categories.map((category) => {
-                  const categoryName = typeof category.name === "object"
-                    ? category.name[i18n.language] || category.name.en || category.name.mn
-                    : category.name;
-                  return (
-                    <option key={category.id} value={category.id}>
-                      {categoryName}
-                    </option>
-                  );
-                })}
-              </select>
+              <Label htmlFor="categoryIds">
+                {t("teacher.course_form.category")} (Multiple)
+                {formData.categoryIds.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 bg-primary/10 text-primary text-xs font-semibold rounded-full">
+                    {formData.categoryIds.length} selected
+                  </span>
+                )}
+              </Label>
+              <div className="mt-2 border-2 border-neutral rounded-lg p-3 bg-gray-50 space-y-2 max-h-48 overflow-y-auto">
+                {categories.length > 0 ? (
+                  categories.map((category) => {
+                    const categoryName = typeof category.name === "object"
+                      ? category.name[i18n.language] || category.name.en || category.name.mn
+                      : category.name;
+                    const isSelected = formData.categoryIds.includes(category.id);
+
+                    return (
+                      <div key={category.id} className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id={`category-${category.id}`}
+                          checked={isSelected}
+                          onChange={() => handleCategoryToggle(category.id)}
+                          className="h-4 w-4 text-primary border-gray-300 rounded focus:ring-primary"
+                        />
+                        <label
+                          htmlFor={`category-${category.id}`}
+                          className="ml-2 text-sm text-gray-700 cursor-pointer"
+                        >
+                          {categoryName}
+                        </label>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="text-sm text-gray-500">No categories available</p>
+                )}
+              </div>
             </div>
           </div>
 

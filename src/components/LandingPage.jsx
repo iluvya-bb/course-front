@@ -277,65 +277,41 @@ const Nav = () => {
 						{siteName}
 					</h1>
 				</motion.div>
-				<div className="hidden md:flex items-center space-x-8">
-					<motion.a
-						href="#features"
-						className="text-base-content hover:text-brand-lavender transition-all duration-300 font-semibold relative group"
-						whileHover={{ y: -2 }}
-					>
-						{t("nav.features")}
-						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-lavender group-hover:w-full transition-all duration-300"></span>
-					</motion.a>
-					<motion.a
-						href="#categories"
-						className="text-base-content hover:text-brand-coral transition-all duration-300 font-semibold relative group"
-						whileHover={{ y: -2 }}
-					>
-						{t("nav.categories", { defaultValue: "Ангилал" })}
-						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-coral group-hover:w-full transition-all duration-300"></span>
-					</motion.a>
+				<div className="hidden md:flex items-center space-x-6">
 					<motion.a
 						href="#courses"
-						className="text-base-content hover:text-brand-yellow transition-all duration-300 font-semibold relative group"
+						className="text-base-content hover:text-brand-lavender transition-all duration-300 font-semibold relative group"
 						whileHover={{ y: -2 }}
 					>
 						{t("nav.courses")}
-						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-yellow group-hover:w-full transition-all duration-300"></span>
-					</motion.a>
-					<motion.a
-						href="#teachers"
-						className="text-base-content hover:text-brand-lime transition-all duration-300 font-semibold relative group"
-						whileHover={{ y: -2 }}
-					>
-						{t("nav.teachers")}
-						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-lime group-hover:w-full transition-all duration-300"></span>
-					</motion.a>
-					<motion.a
-						href="/account"
-						className="text-base-content hover:text-brand-lavender transition-all duration-300 font-semibold relative group"
-						whileHover={{ y: -2 }}
-					>
-						{t("nav.book_teacher", { defaultValue: "Багш захиалах" })}
 						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-lavender group-hover:w-full transition-all duration-300"></span>
 					</motion.a>
 					<motion.a
-						href="#testimonials"
+						href="#teachers"
 						className="text-base-content hover:text-brand-coral transition-all duration-300 font-semibold relative group"
 						whileHover={{ y: -2 }}
 					>
-						{t("nav.testimonials")}
+						{t("nav.teachers")}
 						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-coral group-hover:w-full transition-all duration-300"></span>
 					</motion.a>
+					<motion.a
+						href="/certificates/validate"
+						className="text-base-content hover:text-brand-yellow transition-all duration-300 font-semibold relative group"
+						whileHover={{ y: -2 }}
+					>
+						{t("nav.verify_certificates")}
+						<span className="absolute bottom-0 left-0 w-0 h-0.5 bg-brand-yellow group-hover:w-full transition-all duration-300"></span>
+					</motion.a>
 				</div>
-				<div className="flex items-center">
+				<div className="flex items-center gap-3">
 					<LanguageSwitcher />
 					<motion.a
 						href="/account"
-						className="bg-brand-lavender text-white px-6 py-2 rounded-full font-bold ml-4 hover:shadow-lg hover:shadow-brand-lavender/50 hover:bg-brand-coral transition-all duration-300"
+						className="hidden sm:block bg-gradient-to-r from-brand-lavender to-brand-coral text-white px-6 py-2 rounded-full font-bold hover:shadow-lg hover:shadow-brand-lavender/50 transition-all duration-300"
 						whileHover={{ scale: 1.05, y: -2 }}
 						whileTap={{ scale: 0.95 }}
 					>
-						{t("nav.login", { defaultValue: "Нэвтрэх" })}
+						{t("nav.login")}
 					</motion.a>
 				</div>
 			</div>

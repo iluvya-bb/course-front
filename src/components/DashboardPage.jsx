@@ -102,9 +102,15 @@ const DashboardPage = () => {
 				course.title?.toLowerCase().includes(searchQuery.toLowerCase()),
 			)
 			.filter((course) => {
-				return selectedCategory != ""
-					? course.categoryId + "" === selectedCategory.toString()
-					: true;
+				if (selectedCategory === "") return true;
+
+				// Check if course has multiple categories (new approach)
+				if (course.categories && Array.isArray(course.categories)) {
+					return course.categories.some(cat => cat.id.toString() === selectedCategory.toString());
+				}
+
+				// Fallback to old single categoryId for backward compatibility
+				return course.categoryId?.toString() === selectedCategory.toString();
 			})
 			.filter((course) => {
 				return (

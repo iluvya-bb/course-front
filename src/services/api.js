@@ -170,6 +170,57 @@ const API = {
 
 	// --- Parameters ---
 	getParameters: (params) => axiosInstance.get("/parameters", { params }),
+
+	// --- Tests ---
+	getTests: (params) => axiosInstance.get("/tests", { params }),
+	getTest: (id) => axiosInstance.get(`/tests/${id}`),
+	createTest: (data) => axiosInstance.post("/tests", data),
+	updateTest: (id, data) => axiosInstance.put(`/tests/${id}`, data),
+	deleteTest: (id) => axiosInstance.delete(`/tests/${id}`),
+	startTest: (id) => axiosInstance.post(`/tests/${id}/start`),
+	submitTest: (id, data) => axiosInstance.post(`/tests/${id}/submit`, data),
+	getTestResults: (testId, attemptId) =>
+		axiosInstance.get(`/tests/${testId}/results/${attemptId}`),
+	getUserAttempts: (testId) => axiosInstance.get(`/tests/${testId}/attempts`),
+
+	// --- Questions ---
+	getQuestions: (params) => axiosInstance.get("/questions", { params }),
+	getQuestion: (id) => axiosInstance.get(`/questions/${id}`),
+	createQuestion: (data) => axiosInstance.post("/questions", data),
+	updateQuestion: (id, data) => axiosInstance.put(`/questions/${id}`, data),
+	deleteQuestion: (id) => axiosInstance.delete(`/questions/${id}`),
+	gradeQuestion: (id, data) => axiosInstance.post(`/questions/${id}/grade`, data),
+
+	// --- Certificates ---
+	getMyCertificates: () => axiosInstance.get("/certificates"),
+	getCertificate: (certificateId) =>
+		axiosInstance.get(`/certificates/${certificateId}`),
+	validateCertificates: (email) =>
+		axiosInstance.post("/certificates/validate", { email }),
+	revokeCertificate: (id, data) =>
+		axiosInstance.put(`/certificates/${id}/revoke`, data),
+	sendCertificateEmail: (id) =>
+		axiosInstance.post(`/certificates/${id}/send`),
+	generateCertificatePDF: (id) =>
+		axiosInstance.post(`/certificates/${id}/generate-pdf`),
+	getAllCertificates: (params) =>
+		axiosInstance.get("/certificates/admin/all", { params }),
+
+	// --- Teacher Applications ---
+	submitTeacherApplication: (data) =>
+		axiosInstance.post("/teacher-applications", data),
+	getMyTeacherApplication: () =>
+		axiosInstance.get("/teacher-applications/my-application"),
+	getTeacherApplications: (params) =>
+		axiosInstance.get("/teacher-applications", { params }),
+	getTeacherApplication: (id) =>
+		axiosInstance.get(`/teacher-applications/${id}`),
+	approveTeacherApplication: (id) =>
+		axiosInstance.post(`/teacher-applications/${id}/approve`),
+	rejectTeacherApplication: (id, data) =>
+		axiosInstance.post(`/teacher-applications/${id}/reject`, data),
+	updateTeacherApplicationNotes: (id, data) =>
+		axiosInstance.put(`/teacher-applications/${id}/notes`, data),
 };
 
 export default API;

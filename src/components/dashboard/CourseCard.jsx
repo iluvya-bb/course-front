@@ -33,13 +33,25 @@ const CourseCard = ({ course, onSubscribe }) => {
 					<div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
 				</Link>
 
-				{/* Category Badge */}
-				{course.category && (
-					<div className="absolute top-4 left-4">
-						<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-brand-lavender border border-brand-lavender/30 shadow-lg">
-							<FaBook className="text-xs" />
-							{course.category}
-						</span>
+				{/* Category Badges */}
+				{course.categories && course.categories.length > 0 && (
+					<div className="absolute top-4 left-4 flex flex-wrap gap-2 max-w-[calc(100%-6rem)]">
+						{course.categories.slice(0, 2).map((category) => {
+							const categoryName = typeof category.name === 'object'
+								? category.name.mn || category.name.en || category.name
+								: category.name;
+							return (
+								<span key={category.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-brand-lavender border border-brand-lavender/30 shadow-lg">
+									<FaBook className="text-xs" />
+									{categoryName}
+								</span>
+							);
+						})}
+						{course.categories.length > 2 && (
+							<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/90 backdrop-blur-md rounded-full text-xs font-bold text-brand-lavender border border-brand-lavender/30 shadow-lg">
+								+{course.categories.length - 2}
+							</span>
+						)}
 					</div>
 				)}
 

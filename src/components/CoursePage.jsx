@@ -22,6 +22,9 @@ import {
 	FaGraduationCap,
 	FaClock,
 	FaStar,
+	FaTrophy,
+	FaLock,
+	FaUnlock,
 } from "react-icons/fa";
 
 import API, { API_URL } from "../services/api";
@@ -71,6 +74,12 @@ const CoursePage = () => {
 	const [exerciseAnswers, setExerciseAnswers] = useState({});
 	const [exerciseSubmissions, setExerciseSubmissions] = useState({});
 	const [submittingExercise, setSubmittingExercise] = useState(null);
+
+	// Tests state
+	const [tests, setTests] = useState([]);
+	const [loadingTests, setLoadingTests] = useState(false);
+	const [showTestUnlocked, setShowTestUnlocked] = useState(false);
+	const [previousProgress, setPreviousProgress] = useState(0);
 
 	// Mobile sidebar state
 	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -149,6 +158,30 @@ const CoursePage = () => {
 
 		fetchCourseData();
 	}, [courseId]);
+
+	/**
+	 * Effect: Fetch tests for the course
+	 */
+	useEffect(() => {
+		const fetchTests = async () => {
+			if (!courseId || !isSubscribed) {
+				setTests([]);
+				return;
+			}
+
+			setLoadingTests(true);
+			try {
+				const response = await API.getTests({ courseId });
+				setTests(response.data.data || []);
+			} catch (err) {
+				console.error("Failed to fetch tests:", err);
+			} finally {
+				setLoadingTests(false);
+			}
+		};
+
+		fetchTests();
+	}, [courseId, isSubscribed]);
 
 	/**
 	 * Effect: Update video player when selected lesson changes
@@ -304,7 +337,7 @@ const CoursePage = () => {
 
 		setCompletingLesson(true);
 		try {
-			await API.completeLesson(selectedLesson.id);
+			await API.markLessonAsComplete(selectedLesson.id);
 			setSelectedLesson((prevLesson) => ({
 				...prevLesson,
 				completions: [{ id: "new-completion" }],
@@ -316,7 +349,31 @@ const CoursePage = () => {
 						? { ...l, completions: [{ id: "new-completion" }] }
 						: l,
 				);
-				return { ...prevCourse, lessons: updatedLessons };
+
+				// Recalculate progress
+				const totalLessons = updatedLessons.length;
+				const completedLessons = updatedLessons.filter(
+					(lesson) => lesson.completions && lesson.completions.length > 0
+				).length;
+				const newProgress = totalLessons > 0
+					? Math.round((completedLessons / totalLessons) * 100)
+					: 0;
+
+				// Check if we just reached 100%
+				const oldProgress = prevCourse.progress || 0;
+				if (oldProgress < 100 && newProgress === 100) {
+					// Trigger test unlock animation
+					setTimeout(() => {
+						setShowTestUnlocked(true);
+						setTimeout(() => setShowTestUnlocked(false), 5000);
+					}, 1000);
+				}
+
+				return {
+					...prevCourse,
+					lessons: updatedLessons,
+					progress: newProgress
+				};
 			});
 
 			setCompletionSuccess(true);
@@ -961,6 +1018,171 @@ const CoursePage = () => {
 											</p>
 										)}
 									</div>
+
+									{/* Tests Section - Only show on last lesson */}
+									{selectedLesson && course.lessons &&
+									 selectedLesson.id === course.lessons[course.lessons.length - 1]?.id && (
+										<div className="mt-12">
+											<div className="flex items-center gap-3 mb-6">
+												<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-coral to-brand-yellow flex items-center justify-center">
+													<FaGraduationCap className="text-white" />
+												</div>
+												<h2 className="text-2xl font-black text-base-content">
+													{t("course.tests", { defaultValue: "Tests & Certificates" })}
+												</h2>
+											</div>
+
+											{/* Test Unlock Celebration */}
+											<AnimatePresence>
+												{showTestUnlocked && (
+													<motion.div
+														initial={{ opacity: 0, scale: 0.8, y: -20 }}
+														animate={{ opacity: 1, scale: 1, y: 0 }}
+														exit={{ opacity: 0, scale: 0.8, y: -20 }}
+														className="mb-6 p-6 bg-gradient-to-r from-green-100 via-yellow-100 to-green-100 border-2 border-green-400 rounded-2xl flex items-center gap-4 shadow-2xl"
+													>
+														<motion.div
+															animate={{
+																rotate: [0, -10, 10, -10, 0],
+																scale: [1, 1.2, 1]
+															}}
+															transition={{
+																duration: 0.5,
+																repeat: 3,
+																ease: "easeInOut"
+															}}
+															className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-yellow to-brand-coral flex items-center justify-center flex-shrink-0"
+														>
+															<FaTrophy className="text-white text-3xl" />
+														</motion.div>
+														<div className="flex-1">
+															<p className="text-green-800 font-black text-xl mb-1">
+																🎉 {t("course.tests_unlocked_title", { defaultValue: "Tests Unlocked!" })}
+															</p>
+															<p className="text-green-700 font-medium">
+																{t("course.tests_unlocked_message", { defaultValue: "Congratulations! You've completed all lessons. You can now take the tests!" })}
+															</p>
+														</div>
+														<FaUnlock className="text-green-600 text-2xl flex-shrink-0" />
+													</motion.div>
+												)}
+											</AnimatePresence>
+
+											{loadingTests ? (
+												<div className="flex justify-center py-8">
+													<FaSpinner className="animate-spin text-brand-lavender text-2xl" />
+												</div>
+											) : course.progress === 100 ? (
+												// Tests are unlocked - show available tests
+												tests.length > 0 ? (
+													<div className="grid grid-cols-1 gap-4">
+														{tests.map((test, index) => (
+															<motion.div
+																key={test.id}
+																initial={{ opacity: 0, y: 20 }}
+																animate={{ opacity: 1, y: 0 }}
+																transition={{ delay: index * 0.1 }}
+																className="bg-gradient-to-br from-brand-lavender/10 to-brand-coral/10 p-6 rounded-3xl border-2 border-brand-lavender/30 shadow-lg hover:shadow-xl transition-all"
+															>
+																<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+																	<div className="flex-1">
+																		<h3 className="text-xl font-bold text-base-content mb-2">
+																			{test.title}
+																		</h3>
+																		{test.description && (
+																			<p className="text-base-content/70 text-sm mb-3">
+																				{test.description}
+																			</p>
+																		)}
+																		<div className="flex flex-wrap gap-3 text-sm">
+																			<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
+																				<FaBook className="text-brand-lavender" />
+																				<span className="font-medium">
+																					{test.questions?.length || 0} {t("course.questions", { defaultValue: "questions" })}
+																				</span>
+																			</div>
+																			<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
+																				<FaStar className="text-brand-coral" />
+																				<span className="font-medium">
+																					{test.passingScore}% {t("course.passing_score", { defaultValue: "to pass" })}
+																				</span>
+																			</div>
+																			{test.timeLimit && (
+																				<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
+																					<FaClock className="text-brand-yellow" />
+																					<span className="font-medium">
+																						{test.timeLimit} {t("course.minutes", { defaultValue: "min" })}
+																					</span>
+																				</div>
+																			)}
+																		</div>
+																	</div>
+																	<Button
+																		onClick={() => window.location.href = `/tests/${test.id}`}
+																		className="bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+																	>
+																		<FaGraduationCap className="mr-2" />
+																		{t("course.start_test", { defaultValue: "Start Test" })}
+																	</Button>
+																</div>
+															</motion.div>
+														))}
+													</div>
+												) : (
+													<div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border-2 border-gray-200">
+														<FaGraduationCap className="text-gray-300 text-5xl mx-auto mb-4" />
+														<p className="text-base-content/70 font-medium">
+															{t("course.no_tests", { defaultValue: "No tests available for this course yet" })}
+														</p>
+													</div>
+												)
+											) : (
+												// Tests are locked - show locked state
+												<motion.div
+													initial={{ opacity: 0, y: 20 }}
+													animate={{ opacity: 1, y: 0 }}
+													className="bg-gradient-to-br from-gray-100 to-gray-200 p-8 rounded-3xl border-2 border-gray-300 text-center"
+												>
+													<motion.div
+														animate={{
+															scale: [1, 1.1, 1],
+														}}
+														transition={{
+															duration: 2,
+															repeat: Infinity,
+															ease: "easeInOut"
+														}}
+														className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center"
+													>
+														<FaLock className="text-white text-4xl" />
+													</motion.div>
+													<h3 className="text-2xl font-black text-gray-700 mb-3">
+														{t("course.tests_locked_title", { defaultValue: "Tests Locked" })}
+													</h3>
+													<p className="text-gray-600 font-medium mb-6 max-w-md mx-auto">
+														{t("course.tests_locked_message", {
+															defaultValue: "Complete all lessons to unlock the tests. Keep going, you're doing great!"
+														})}
+													</p>
+													<div className="inline-flex items-center gap-3 px-6 py-3 bg-white rounded-full border-2 border-gray-300">
+														<div className="flex items-center gap-2">
+															<div className="w-48 bg-gray-200 rounded-full h-3 overflow-hidden">
+																<motion.div
+																	initial={{ width: 0 }}
+																	animate={{ width: `${course.progress || 0}%` }}
+																	transition={{ duration: 1, ease: "easeOut" }}
+																	className="bg-gradient-to-r from-brand-lavender to-brand-coral h-3 rounded-full"
+																></motion.div>
+															</div>
+															<span className="text-lg font-black text-gray-700">
+																{course.progress || 0}%
+															</span>
+														</div>
+													</div>
+												</motion.div>
+											)}
+										</div>
+									)}
 								</motion.div>
 							) : (
 								// Shown if subscribed but no lesson is selected

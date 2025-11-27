@@ -17,6 +17,11 @@ import ProfilePage from "./components/ProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
 import NotFoundPage from "./components/NotFoundPage";
 import AuthCallbackPage from "./components/AuthCallbackPage";
+import TestTakingPage from "./components/TestTakingPage";
+import TestResultsPage from "./components/TestResultsPage";
+import CertificatesPage from "./components/CertificatesPage";
+import CertificateValidationPage from "./components/CertificateValidationPage";
+import TeacherApplicationPage from "./components/TeacherApplicationPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
 // Teacher Portal Components
@@ -46,6 +51,9 @@ function App() {
 				{/* OAuth Callback Route */}
 				<Route path="/auth/callback" element={<AuthCallbackPage />} />
 
+				{/* --- Certificate Validation (Public) --- */}
+				<Route path="/certificates/validate" element={<CertificateValidationPage />} />
+
 					{/* --- Private Routes (Require Login) --- */}
 					{/* Wrap protected routes with PrivateRoute */}
 					<Route element={<PrivateRoute />}>
@@ -58,6 +66,12 @@ function App() {
 							<Route path="/my-bookings" element={<MyBookingsPage />} />
 							<Route path="/course/:courseId" element={<CoursePage />} />
 							<Route path="/profile" element={<ProfilePage />} />
+							{/* Test and Certificate Routes */}
+							<Route path="/tests/:testId" element={<TestTakingPage />} />
+							<Route path="/tests/:testId/results/:attemptId" element={<TestResultsPage />} />
+							<Route path="/certificates" element={<CertificatesPage />} />
+							{/* Teacher Application */}
+							<Route path="/apply-teacher" element={<TeacherApplicationPage />} />
 						</Route>
 					</Route>
 
