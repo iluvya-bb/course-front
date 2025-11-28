@@ -20,11 +20,11 @@ function AuthCallbackPage() {
 				setError(
 					errorParam === "authentication_failed"
 						? t("auth.error_failed", {
-								defaultValue: "Нэвтрэхэд алдаа гарлаа. Дахин оролдоно уу.",
-						  })
+							defaultValue: "Нэвтрэхэд алдаа гарлаа. Дахин оролдоно уу.",
+						})
 						: t("auth.error_server", {
-								defaultValue: "Серверийн алдаа гарлаа. Дахин оролдоно уу.",
-						  }),
+							defaultValue: "Серверийн алдаа гарлаа. Дахин оролдоно уу.",
+						}),
 				);
 				setTimeout(() => navigate("/account"), 3000);
 				return;

@@ -326,7 +326,10 @@ const LoginForm = ({ onSubmit, onForgotPassword }) => {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <Label htmlFor="login-email" className="text-base-content font-semibold">
+        <Label
+          htmlFor="login-email"
+          className="text-base-content font-semibold"
+        >
           {t("login.email")}
         </Label>
         <motion.div whileFocus={{ scale: 1.01 }} className="mt-1">
@@ -349,7 +352,10 @@ const LoginForm = ({ onSubmit, onForgotPassword }) => {
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <div className="flex items-center justify-between mb-1">
-          <Label htmlFor="login-password" className="text-base-content font-semibold">
+          <Label
+            htmlFor="login-password"
+            className="text-base-content font-semibold"
+          >
             {t("login.password")}
           </Label>
           <motion.button
@@ -447,7 +453,11 @@ const LoginForm = ({ onSubmit, onForgotPassword }) => {
           onClick={handleGoogleLogin}
           type="button"
           className="w-full flex items-center justify-center gap-3 px-4 py-3 font-semibold text-gray-700 bg-white rounded-xl border-2 border-white/20 shadow-lg transition-all"
-          whileHover={{ scale: 1.03, y: -2, boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)" }}
+          whileHover={{
+            scale: 1.03,
+            y: -2,
+            boxShadow: "0 10px 30px rgba(0, 0, 0, 0.15)",
+          }}
           whileTap={{ scale: 0.98 }}
           disabled={loading}
         >
@@ -470,20 +480,6 @@ const LoginForm = ({ onSubmit, onForgotPassword }) => {
             />
           </svg>
           {t("login.google", { defaultValue: "Google-ээр нэвтрэх" })}
-        </motion.button>
-
-        <motion.button
-          onClick={handleFacebookLogin}
-          type="button"
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 font-semibold text-white bg-[#1877F2] rounded-xl shadow-lg transition-all"
-          whileHover={{ scale: 1.03, y: -2, boxShadow: "0 10px 30px rgba(24, 119, 242, 0.4)" }}
-          whileTap={{ scale: 0.98 }}
-          disabled={loading}
-        >
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-          </svg>
-          {t("login.facebook", { defaultValue: "Facebook-ээр нэвтрэх" })}
         </motion.button>
       </motion.div>
     </form>
@@ -617,7 +613,9 @@ const SignUpForm = ({ onSubmit }) => {
             />
             <span className="relative z-10 flex items-center justify-center text-white font-bold">
               {loading && <FaSpinner className="animate-spin mr-2" />}
-              {loading ? t("create_account.creating") : t("create_account.create_button")}
+              {loading
+                ? t("create_account.creating")
+                : t("create_account.create_button")}
             </span>
           </Button>
         </motion.div>
