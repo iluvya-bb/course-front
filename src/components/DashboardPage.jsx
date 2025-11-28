@@ -106,7 +106,9 @@ const DashboardPage = () => {
 
 				// Check if course has multiple categories (new approach)
 				if (course.categories && Array.isArray(course.categories)) {
-					return course.categories.some(cat => cat.id.toString() === selectedCategory.toString());
+					return course.categories.some(
+						(cat) => cat.id.toString() === selectedCategory.toString(),
+					);
 				}
 
 				// Fallback to old single categoryId for backward compatibility
@@ -228,7 +230,7 @@ const DashboardPage = () => {
 							}}
 						/>
 
-						<div className="relative z-10 p-8 md:p-12">
+						<div className="relative z-1 p-8 md:p-12">
 							<div className="max-w-3xl">
 								<motion.div
 									initial={{ opacity: 0, x: -20 }}

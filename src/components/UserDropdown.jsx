@@ -37,7 +37,7 @@ const UserDropdown = ({ user, onLogout }) => {
     : null;
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="z-100" ref={dropdownRef}>
       {/* Avatar Button with elevated styling */}
       <motion.button
         whileHover={{ scale: 1.05 }}
@@ -81,7 +81,7 @@ const UserDropdown = ({ user, onLogout }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 mt-3 w-72 origin-top-right"
+            className="absolute right-0 z-100 mt-3 w-72 origin-top-right"
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="user-menu-button"
