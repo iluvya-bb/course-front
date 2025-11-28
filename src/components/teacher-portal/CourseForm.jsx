@@ -25,7 +25,7 @@ const CourseForm = () => {
     categoryIds: [], // For multiple categories
     subscriptionDurationDays: "",
     isSpecial: false,
-    isVisible: true,
+    isVisible: false, // Always false for teacher-created courses - requires admin approval
     isShowcased: false,
   });
   const [bannerFile, setBannerFile] = useState(null);
@@ -319,22 +319,27 @@ const CourseForm = () => {
             </p>
           </div>
 
+          {/* Approval Notice */}
+          <div className="p-6 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border-2 border-yellow-200">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="font-bold text-yellow-800 mb-1">
+                  {t("teacher.course_form.approval_title")}
+                </h4>
+                <p className="text-sm text-yellow-700">
+                  {t("teacher.course_form.approval_message")}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Checkboxes */}
           <div className="space-y-4 p-6 bg-gray-50 rounded-xl">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="isVisible"
-                name="isVisible"
-                checked={formData.isVisible}
-                onChange={handleInputChange}
-                className="w-5 h-5 text-primary rounded focus:ring-primary"
-              />
-              <Label htmlFor="isVisible" className="cursor-pointer mb-0">
-                {t("teacher.course_form.visible")}
-              </Label>
-            </div>
-
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"

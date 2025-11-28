@@ -233,14 +233,9 @@ const MainLayout = () => {
             </nav>
           )}
 
-          {/* Bottom section - User */}
-          <div className="p-2 lg:p-4 space-y-3 border-t-2 border-brand-lavender/20">
-            {/* User Section */}
-            {user ? (
-              <div className="flex items-center justify-center lg:justify-start">
-                <UserDropdown user={user} onLogout={logout} />
-              </div>
-            ) : (
+          {/* Bottom section - Login button only when not logged in */}
+          {!user && (
+            <div className="p-2 lg:p-4 space-y-3 border-t-2 border-brand-lavender/20">
               <Link to="/account" className="block">
                 <motion.div
                   whileHover={{ scale: 1.05 }}
@@ -253,8 +248,8 @@ const MainLayout = () => {
                   </span>
                 </motion.div>
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </aside>
 
@@ -308,14 +303,26 @@ const MainLayout = () => {
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {/* Breadcrumb and Language Switcher Row */}
+          {/* Breadcrumb, Language Switcher, and User Dropdown Row */}
           <div className="flex items-center justify-between gap-4 mb-6">
             <Breadcrumb />
-            <motion.div whileHover={{ scale: 1.05 }} className="flex-shrink-0">
-              <div className="bg-gradient-to-r from-brand-yellow/20 to-brand-coral/20 p-2 lg:p-3 rounded-2xl border-2 border-brand-yellow/30 shadow-md hover:shadow-lg transition-shadow">
-                <LanguageSwitcher />
-              </div>
-            </motion.div>
+            <div className="flex items-center gap-3">
+              {/* Language Switcher */}
+              <motion.div whileHover={{ scale: 1.05 }} className="flex-shrink-0">
+                <div className="bg-gradient-to-r from-brand-yellow/20 to-brand-coral/20 p-2 lg:p-3 rounded-2xl border-2 border-brand-yellow/30 shadow-md hover:shadow-lg transition-shadow">
+                  <LanguageSwitcher />
+                </div>
+              </motion.div>
+
+              {/* User Dropdown - only show when logged in */}
+              {user && (
+                <motion.div whileHover={{ scale: 1.05 }} className="flex-shrink-0">
+                  <div className="bg-gradient-to-r from-brand-lavender/20 to-brand-coral/20 p-2 lg:p-3 rounded-2xl border-2 border-brand-lavender/30 shadow-md hover:shadow-lg transition-shadow">
+                    <UserDropdown user={user} onLogout={logout} />
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </div>
 
           <div>

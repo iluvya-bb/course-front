@@ -43,8 +43,8 @@ const TeacherDashboard = () => {
       const coursesData = coursesRes.data.data || [];
       setCourses(coursesData.slice(0, 3)); // Show only 3 recent courses
 
-      // Fetch bookings
-      const bookingsRes = await API.getMyBookings();
+      // Fetch bookings for this teacher only
+      const bookingsRes = await API.getBookingsTeacher();
       const bookingsData = bookingsRes.data.data || [];
       setRecentBookings(bookingsData.slice(0, 5));
 

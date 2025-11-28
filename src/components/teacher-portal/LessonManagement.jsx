@@ -14,10 +14,13 @@ import {
   FaCheckCircle,
   FaClock,
   FaTimesCircle,
+  FaInfoCircle,
 } from "react-icons/fa";
 import API from "../../services/api";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import DirectVideoUpload from "./DirectVideoUpload";
+import TranscodingStatus from "./TranscodingStatus";
 
 const LessonManagement = () => {
   const { t } = useTranslation();
@@ -33,9 +36,11 @@ const LessonManagement = () => {
     content: "",
     wysiwygContent: "",
   });
-  const [videoFile, setVideoFile] = useState(null);
+  const [videoS3Key, setVideoS3Key] = useState(null);
   const [bannerFile, setBannerFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [createdLessonId, setCreatedLessonId] = useState(null);
+  const [transcodingStatus, setTranscodingStatus] = useState(null);
 
   useEffect(() => {
     fetchCourseAndLessons();
@@ -44,9 +49,16 @@ const LessonManagement = () => {
   const fetchCourseAndLessons = async () => {
     try {
       setLoading(true);
+
+      // Fetch course details
       const courseRes = await API.getCourse(courseId);
       setCourse(courseRes.data.data);
-      setLessons(courseRes.data.data.Lessons || []);
+
+      // Fetch lessons separately
+      const lessonsRes = await API.getLessons({ courseId: courseId });
+      setLessons(lessonsRes.data.data || []);
+
+      console.log("Fetched lessons:", lessonsRes.data.data);
     } catch (error) {
       console.error("Failed to fetch course:", error);
     } finally {
@@ -61,7 +73,14 @@ const LessonManagement = () => {
       content: lesson.content || "",
       wysiwygContent: lesson.wysiwygContent || "",
     });
+    setCreatedLessonId(lesson.id);
+    setTranscodingStatus(lesson.transcodingStatus);
     setShowForm(true);
+  };
+
+  const handleVideoUploadComplete = (s3Key) => {
+    console.log("Video uploaded to S3:", s3Key);
+    setVideoS3Key(s3Key);
   };
 
   const handleDelete = async (lessonId) => {
@@ -129,26 +148,40 @@ const LessonManagement = () => {
     setUploading(true);
 
     try {
-      const data = new FormData();
-      data.append("courseId", courseId);
-      data.append("title", formData.title);
-      if (formData.content) data.append("content", formData.content);
-      if (formData.wysiwygContent) data.append("wysiwygContent", formData.wysiwygContent);
-      if (videoFile) data.append("video", videoFile);
-      if (bannerFile) data.append("bannerImage", bannerFile);
-
-      if (editingLesson) {
-        await API.updateLesson(editingLesson.id, data);
-      } else {
-        await API.createLesson(data);
+      if (!videoS3Key && !editingLesson) {
+        alert(t("teacher.lessons.video_upload.no_file"));
+        setUploading(false);
+        return;
       }
 
-      setShowForm(false);
-      setEditingLesson(null);
-      setFormData({ title: "", content: "", wysiwygContent: "" });
-      setVideoFile(null);
-      setBannerFile(null);
-      fetchCourseAndLessons();
+      // Create lesson with S3 video
+      const lessonData = {
+        courseId: courseId,
+        title: formData.title,
+        content: formData.content,
+        wysiwygContent: formData.wysiwygContent,
+        videoS3Key: videoS3Key,
+      };
+
+      const response = await API.createLessonWithS3Video(lessonData);
+      const lesson = response.data.data;
+
+      console.log("Lesson created:", lesson);
+      setCreatedLessonId(lesson.id);
+      setTranscodingStatus("pending");
+
+      // Now trigger transcoding
+      try {
+        await API.startTranscoding({
+          lessonId: lesson.id,
+          s3Key: videoS3Key,
+        });
+        setTranscodingStatus("processing");
+        alert(t("teacher.lessons.video_upload.upload_complete"));
+      } catch (transcodingError) {
+        console.error("Failed to start transcoding:", transcodingError);
+        alert(t("teacher.lessons.transcoding.failed_msg"));
+      }
     } catch (error) {
       console.error("Failed to save lesson:", error);
       alert(error.response?.data?.error || t("teacher.lessons.save_failed"));
@@ -157,12 +190,30 @@ const LessonManagement = () => {
     }
   };
 
+  const handleTranscodingComplete = () => {
+    console.log("Transcoding completed!");
+    setTranscodingStatus("completed");
+    // Reset form and reload lessons after a short delay
+    setTimeout(() => {
+      setShowForm(false);
+      setEditingLesson(null);
+      setFormData({ title: "", content: "", wysiwygContent: "" });
+      setVideoS3Key(null);
+      setBannerFile(null);
+      setCreatedLessonId(null);
+      setTranscodingStatus(null);
+      fetchCourseAndLessons();
+    }, 2000);
+  };
+
   const resetForm = () => {
     setShowForm(false);
     setEditingLesson(null);
     setFormData({ title: "", content: "", wysiwygContent: "" });
-    setVideoFile(null);
+    setVideoS3Key(null);
     setBannerFile(null);
+    setCreatedLessonId(null);
+    setTranscodingStatus(null);
   };
 
   if (loading) {
@@ -208,6 +259,28 @@ const LessonManagement = () => {
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
             {editingLesson ? t("teacher.lessons.edit_title") : t("teacher.lessons.create_title")}
           </h2>
+
+          {/* Info Banner */}
+          {!editingLesson && (
+            <div className="mb-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl flex items-start space-x-3">
+              <FaInfoCircle className="text-blue-600 text-xl mt-0.5 flex-shrink-0" />
+              <div className="flex-1 text-sm text-blue-900">
+                <strong>{t("teacher.lessons.video_upload.upload")}:</strong>{" "}
+                {t("teacher.lessons.transcoding.processing_msg")}
+              </div>
+            </div>
+          )}
+
+          {/* Show Transcoding Status if lesson is created */}
+          {createdLessonId && transcodingStatus && (
+            <div className="mb-6">
+              <TranscodingStatus
+                lessonId={createdLessonId}
+                onComplete={handleTranscodingComplete}
+              />
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <Label htmlFor="title">{t("teacher.lessons.lesson_title")}</Label>
@@ -237,52 +310,42 @@ const LessonManagement = () => {
               />
             </div>
 
-            <div>
-              <Label htmlFor="video">{t("teacher.lessons.video")} {editingLesson ? t("teacher.lessons.video_optional") : "*"}</Label>
-              <input
-                id="video"
-                type="file"
-                accept="video/*"
-                onChange={(e) => setVideoFile(e.target.files[0])}
-                required={!editingLesson}
-                className="mt-2 w-full px-4 py-3 border-2 border-neutral rounded-lg focus:border-primary focus:outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer"
-              />
-              {videoFile && (
-                <p className="text-sm text-green-600 mt-2">{t("teacher.lessons.selected")}: {videoFile.name}</p>
-              )}
-            </div>
+            {/* Direct Video Upload Component */}
+            {!editingLesson && !createdLessonId && (
+              <div className="mb-6">
+                <DirectVideoUpload
+                  onUploadComplete={handleVideoUploadComplete}
+                  onError={(err) => console.error("Video upload error:", err)}
+                />
+              </div>
+            )}
 
-            <div>
-              <Label htmlFor="banner">{t("teacher.lessons.banner")}</Label>
-              <input
-                id="banner"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setBannerFile(e.target.files[0])}
-                className="mt-2 w-full px-4 py-3 border-2 border-neutral rounded-lg focus:border-primary focus:outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary file:text-white file:cursor-pointer"
-              />
-              {bannerFile && (
-                <p className="text-sm text-green-600 mt-2">{t("teacher.lessons.selected")}: {bannerFile.name}</p>
-              )}
-            </div>
+            {/* Submit Button */}
+            {!createdLessonId && (
+              <div className="flex gap-4 pt-4">
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold transition-all"
+                >
+                  {t("teacher.lessons.cancel")}
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading || (!videoS3Key && !editingLesson)}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <FaSave />
+                  <span>{uploading ? t("teacher.lessons.uploading") : editingLesson ? t("teacher.lessons.update") : t("teacher.lessons.create")}</span>
+                </button>
+              </div>
+            )}
 
-            <div className="flex gap-4 pt-4">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="flex-1 px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-bold transition-all"
-              >
-                {t("teacher.lessons.cancel")}
-              </button>
-              <button
-                type="submit"
-                disabled={uploading}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50 transition-all"
-              >
-                <FaSave />
-                <span>{uploading ? t("teacher.lessons.uploading") : editingLesson ? t("teacher.lessons.update") : t("teacher.lessons.create")}</span>
-              </button>
-            </div>
+            {createdLessonId && transcodingStatus === "completed" && (
+              <div className="text-center text-green-600 font-semibold py-4">
+                {t("teacher.lessons.transcoding.completed_msg")}
+              </div>
+            )}
           </form>
         </motion.div>
       )}

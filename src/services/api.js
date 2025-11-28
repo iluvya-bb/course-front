@@ -106,6 +106,15 @@ const API = {
 		axiosInstance.post(`/lessons/${id}/reject-publish`, { reason }),
 	getPendingLessons: () => axiosInstance.get("/lessons/pending-approval"),
 
+	// --- Direct S3 Upload for Lessons ---
+	initiateVideoUpload: (data) =>
+		axiosInstance.post("/direct-upload/initiate-video", data),
+	createLessonWithS3Video: (data) =>
+		axiosInstance.post("/direct-upload/create-lesson", data),
+	getTranscodingStatus: (lessonId) =>
+		axiosInstance.get(`/direct-upload/transcoding-status/${lessonId}`),
+	startTranscoding: (data) => axiosInstance.post("/transcoding/start", data),
+
 	// --- Exercises (from exercise.js) ---
 	getExercises: (params) => axiosInstance.get("/exercises", { params }),
 	createExercise: (data) => axiosInstance.post("/exercises", data),
