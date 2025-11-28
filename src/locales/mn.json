@@ -10,17 +10,18 @@
 		"login": "Нэвтрэх",
 		"dashboard": "Нүүр",
 		"profile": "Профайл",
-		"booking": "Багш захиалах",
+		"booking": "Сургалт авах",
+		"wallet": "Түрийвч",
 		"my_bookings": "Миний захиалгууд",
 		"verify_certificates": "Гэрчилгээ баталгаажуулах",
 		"teacher_dashboard": "Багшийн самбар",
-		"book_teacher": "Багш захиалах"
+		"book_teacher": "Сургалтанд суух"
 	},
 	"hero": {
 		"title": "Таны амьдралд тохирсон сургалт.",
 		"subtitle": "Дэлхийн жишигт нийцсэн видео хичээлүүдийг өөрийн хуваарийн дагуу үзэх, эсвэл мэргэжлийн багш нартай холбогдож, шууд ганцаарчилсан сургалтад хамрагдаарай.",
 		"button_courses": "Хичээлүүдтэй танилцах",
-		"button_tutor": "Багш захиалах"
+		"button_tutor": "Сургалтанд суух"
 	},
 	"features": {
 		"videos_title": "Хүссэн үедээ үзэх видео хичээл",
@@ -39,7 +40,9 @@
 		"language_category": "Хэл",
 		"language_title": "Англи хэлний ярианы чадвар",
 		"language_desc": "Өдөр тутмын харилцан ярианд өөртөө итгэлтэй оролцож сурах практик хичээлүүд.",
-		"details_button": "Дэлгэрэнгүй"
+		"details_button": "Дэлгэрэнгүй",
+		"category_unknown": "Ангилал тодорхойгүй",
+		"instructor_unknown": "Багш тодорхойгүй"
 	},
 	"how_it_works": {
 		"title": "Яаж Ажилладаг вэ?",
@@ -110,6 +113,17 @@
 		"follow_us": "Биднийг дагах"
 	},
 	"start_button": "Эхлэх",
+	"edit": "Засах",
+	"close": "Хаах",
+	"cancel": "Цуцлах",
+	"loading": "Ачааллаж байна",
+	"processing": "Боловсруулж байна",
+	"subscribing": "Бүртгүүлж байна",
+	"saving": "Хадгалж байна...",
+	"save_changes": "Өөрчлөлт хадгалах",
+	"course_data_missing": "Хичээлийн мэдээлэл байхгүй",
+	"free": "Үнэгүй",
+	"welcome": "Тавтай морил, {{name}}",
 	"dashboard": {
 		"title": "Хяналтын самбар",
 		"welcome": "Тавтай морил!",
@@ -130,7 +144,7 @@
 		"subscribed": "Бүртгүүлсэн",
 		"subscribe": "Бүртгүүлэх",
 		"settings": "Тохиргоо",
-		"book_teacher": "Багш захиалах"
+		"book_teacher": "Сургалтанд суух"
 	},
 	"subscribe_confirmation": {
 		"title": "Бүртгүүлэх баталгаажуулалт",
@@ -144,9 +158,52 @@
 		"user_info_heading": "Хэрэглэгчийн Мэдээлэл",
 		"name": "Нэр",
 		"email": "Имэйл",
+		"username": "Хэрэглэгчийн нэр",
+		"role": "Үүрэг",
 		"member_since": "Гишүүнээр элссэн",
 		"subscribed_courses_heading": "Захиалсан Хичээлүүд",
-		"no_subscribed_courses": "Та одоогоор ямар ч хичээлд бүртгүүлээгүй байна."
+		"no_subscribed_courses": "Та одоогоор ямар ч хичээлд бүртгүүлээгүй байна.",
+		"user_info_unavailable": "Хэрэглэгчийн мэдээлэл байхгүй байна.",
+		"wallet_heading": "Миний Түрийвч",
+		"current_balance": "Одоогийн Үлдэгдэл",
+		"add_funds": "Мөнгө Нэмэх",
+		"wallet_not_found": "Түрийвч олдсонгүй.",
+		"error_loading_wallet": "Түрийвч ачаалахад алдаа гарлаа.",
+		"error_loading_subs": "Захиалга ачаалахад алдаа гарлаа.",
+		"error_fetching_data": "Тохиргооны мэдээлэл татахад алдаа гарлаа.",
+		"deposit_amount": "Орлуулах Дүн",
+		"enter_amount": "Дүн оруулах",
+		"error_invalid_amount": "Дүн нь эерэг тоо байх ёстой.",
+		"confirm_deposit": "Орлуулалт Баталгаажуулах",
+		"deposit_failed": "Орлуулалт амжилтгүй боллоо. Дахин оролдоно уу."
+	},
+	"profile": {
+		"title": "Миний Профайл",
+		"subtitle": "Бүртгэлийн тохиргоо болон сонголтуудаа удирдах",
+		"update_success": "Профайл амжилттай шинэчлэгдлээ!",
+		"update_error": "Профайл шинэчлэхэд алдаа гарлаа.",
+		"teacher_verified": "Баталгаажсан Багш",
+		"teacher_pending": "Хүсэлт Хүлээгдэж Байна",
+		"teacher_rejected": "Хүсэлт Татгалзсан",
+		"member_since": "Гишүүнээр элссэн",
+		"wallet": "Түрийвч",
+		"current_balance": "Одоогийн Үлдэгдэл",
+		"add_funds": "Мөнгө Нэмэх",
+		"wallet_not_found": "Түрийвчийн мэдээлэл байхгүй байна",
+		"become_teacher": "Багш Болох",
+		"teacher_description": "Мэдлэгээ хуваалцаж, манай платформ дээр хичээл заан орлого олоорой.",
+		"application_pending": "Хүсэлт Хүлээгдэж Байна",
+		"reapply": "Дахин Хүсэлт Илгээх",
+		"apply_now": "Одоо Хүсэлт Илгээх",
+		"quick_actions": "Шуурхай Үйлдлүүд",
+		"change_password": "Нууц Үг Солих",
+		"view_settings": "Тохиргоо Харах",
+		"edit_profile": "Профайл Засах",
+		"profile_picture": "Профайл Зураг",
+		"change_avatar": "Зураг Солих",
+		"avatar_help": "JPG, PNG эсвэл GIF. Хамгийн их 2MB.",
+		"username_placeholder": "Хэрэглэгчийн нэрээ оруулна уу",
+		"email_placeholder": "Имэйл хаягаа оруулна уу"
 	},
 	"login": {
 		"title": "Тавтай морил!",
@@ -562,5 +619,38 @@
 			"success": "Хүсэлт амжилттай илгээгдлээ! Удахгүй хянах болно.",
 			"error_submit": "Хүсэлт илгээхэд алдаа гарлаа."
 		}
+	},
+	"wallet": {
+		"my_wallet": "Миний хэтэвч",
+		"subtitle": "Хэтэвчийн үлдэгдэл болон гүйлгээгээ удирдах",
+		"current_balance": "Одоогийн үлдэгдэл",
+		"add_funds": "Мөнгө цэнэглэх",
+		"overview": "Тойм",
+		"transactions": "Гүйлгээнүүд",
+		"qpay_history": "QPay түүх",
+		"total_deposits": "Нийт цэнэглэлт",
+		"total_spent": "Нийт зарцуулалт",
+		"total_transactions": "Нийт гүйлгээ",
+		"recent_activity": "Сүүлийн үйлдлүүд",
+		"deposit": "Цэнэглэлт",
+		"withdrawal": "Зарлага",
+		"credit": "Орлого",
+		"debit": "Зарлага",
+		"purchase": "Худалдан авалт",
+		"date": "Огноо",
+		"type": "Төрөл",
+		"description": "Тайлбар",
+		"amount": "Дүн",
+		"balance": "Үлдэгдэл",
+		"status": "Төлөв",
+		"invoice_no": "Нэхэмжлэхийн дугаар",
+		"no_transactions": "Гүйлгээ байхгүй байна",
+		"no_qpay_transactions": "QPay гүйлгээ байхгүй байна",
+		"deposit_amount": "Цэнэглэх дүн",
+		"enter_amount": "Дүн оруулах",
+		"min_amount": "Хамгийн бага дүн",
+		"min_amount_error": "Хамгийн бага цэнэглэх дүн 100₮ байна",
+		"cancel": "Болих",
+		"continue_to_payment": "Төлбөр рүү үргэлжлүүлэх"
 	}
 }

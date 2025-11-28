@@ -20,7 +20,7 @@ import {
 	FaCalendarAlt,
 	FaCheckCircle,
 	FaClock,
-	FaTimesCircle
+	FaTimesCircle,
 } from "react-icons/fa";
 
 const ProfilePage = () => {
@@ -210,7 +210,10 @@ const ProfilePage = () => {
 					{t("profile.title", "My Profile")}
 				</h1>
 				<p className="text-base-content/70 text-lg">
-					{t("profile.subtitle", "Manage your account settings and preferences")}
+					{t(
+						"profile.subtitle",
+						"Manage your account settings and preferences",
+					)}
 				</p>
 			</div>
 
@@ -255,12 +258,11 @@ const ProfilePage = () => {
 								{user?.createdAt && (
 									<p className="text-xs text-base-content/60 flex items-center mt-2">
 										<FaCalendarAlt className="mr-2" />
-										{t("profile.member_since", "Member since")} {new Date(user.createdAt).toLocaleDateString()}
+										{t("profile.member_since", "Member since")}{" "}
+										{new Date(user.createdAt).toLocaleDateString()}
 									</p>
 								)}
-								<div className="mt-4">
-									{getTeacherStatusBadge()}
-								</div>
+								<div className="mt-4">{getTeacherStatusBadge()}</div>
 							</div>
 						</div>
 					</div>
@@ -286,7 +288,7 @@ const ProfilePage = () => {
 										{formatBalance(wallet.balance)} {wallet.currency || "MNT"}
 									</p>
 								</div>
-								<Link to="/deposit">
+								<Link to="/wallet">
 									<Button className="w-full" size="sm" variant="outline">
 										<FaWallet className="mr-2" />
 										{t("profile.add_funds", "Add Funds")}
@@ -295,20 +297,26 @@ const ProfilePage = () => {
 							</div>
 						) : (
 							<p className="text-base-content/70 text-sm">
-								{t("profile.wallet_not_found", "Wallet information unavailable")}
+								{t(
+									"profile.wallet_not_found",
+									"Wallet information unavailable",
+								)}
 							</p>
 						)}
 					</div>
 
 					{/* Teacher Application Card */}
-					{user && user.role !== "teacher" && (
+					{user && user.role !== "teacher" && user.role !== "admin" && (
 						<div className="bg-gradient-to-br from-brand-lavender to-brand-coral rounded-md border-2 border-brand-coral shadow-[4px_4px_0px_#1A1A1A] p-6 text-white">
 							<h3 className="text-xl font-bold mb-3 flex items-center">
 								<FaChalkboardTeacher className="mr-2" />
 								{t("profile.become_teacher", "Become a Teacher")}
 							</h3>
 							<p className="text-sm mb-4 text-white/90">
-								{t("profile.teacher_description", "Share your knowledge and earn by teaching courses on our platform.")}
+								{t(
+									"profile.teacher_description",
+									"Share your knowledge and earn by teaching courses on our platform.",
+								)}
 							</p>
 							<Link to="/apply-teacher">
 								<Button
@@ -343,15 +351,12 @@ const ProfilePage = () => {
 						</h3>
 						<div className="space-y-2">
 							<Link to="/change-password" className="block">
-								<Button variant="ghost" className="w-full justify-start text-left">
+								<Button
+									variant="ghost"
+									className="w-full justify-start text-left"
+								>
 									<FaKey className="mr-3 text-base-content/70" />
 									{t("profile.change_password", "Change Password")}
-								</Button>
-							</Link>
-							<Link to="/settings" className="block">
-								<Button variant="ghost" className="w-full justify-start text-left">
-									<FaUser className="mr-3 text-base-content/70" />
-									{t("profile.view_settings", "View Settings")}
 								</Button>
 							</Link>
 						</div>
@@ -399,7 +404,10 @@ const ProfilePage = () => {
 											disabled={loading}
 										/>
 										<p className="text-xs text-base-content/60 mt-2">
-											{t("profile.avatar_help", "JPG, PNG or GIF. Max size 2MB.")}
+											{t(
+												"profile.avatar_help",
+												"JPG, PNG or GIF. Max size 2MB.",
+											)}
 										</p>
 									</div>
 								</div>
@@ -407,7 +415,10 @@ const ProfilePage = () => {
 
 							{/* Username Field */}
 							<div>
-								<Label htmlFor="username" className="text-sm font-medium text-base-content mb-2 block">
+								<Label
+									htmlFor="username"
+									className="text-sm font-medium text-base-content mb-2 block"
+								>
 									<FaUser className="inline mr-2 text-brand-lavender" />
 									{t("settings.username", "Username")}
 								</Label>
@@ -420,13 +431,19 @@ const ProfilePage = () => {
 									required
 									className="w-full"
 									disabled={loading}
-									placeholder={t("profile.username_placeholder", "Enter your username")}
+									placeholder={t(
+										"profile.username_placeholder",
+										"Enter your username",
+									)}
 								/>
 							</div>
 
 							{/* Email Field */}
 							<div>
-								<Label htmlFor="email" className="text-sm font-medium text-base-content mb-2 block">
+								<Label
+									htmlFor="email"
+									className="text-sm font-medium text-base-content mb-2 block"
+								>
 									<FaEnvelope className="inline mr-2 text-brand-lavender" />
 									{t("settings.email", "Email")}
 								</Label>
@@ -439,7 +456,10 @@ const ProfilePage = () => {
 									required
 									className="w-full"
 									disabled={loading}
-									placeholder={t("profile.email_placeholder", "Enter your email")}
+									placeholder={t(
+										"profile.email_placeholder",
+										"Enter your email",
+									)}
 								/>
 							</div>
 

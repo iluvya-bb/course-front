@@ -25,7 +25,8 @@
 }
 
 @keyframes float {
-	0%, 100% {
+	0%,
+	100% {
 		transform: translateY(0px);
 	}
 	50% {
@@ -34,17 +35,13 @@
 }
 
 @keyframes wiggle {
-	0%, 100% {
+	0%,
+	100% {
 		transform: rotate(-3deg);
 	}
 	50% {
 		transform: rotate(3deg);
 	}
-}
-
-.btn,
-button {
-	border: 1px solid black;
 }
 
 /* Toast animations */

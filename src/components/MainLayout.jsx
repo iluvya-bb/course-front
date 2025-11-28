@@ -9,13 +9,14 @@ import { useAuth } from "../contexts/AuthContext";
 import UserDropdown from "./UserDropdown";
 import API, { API_URL } from "../services/api";
 import {
-	FaHome,
-	FaBook,
-	FaCalendarAlt,
-	FaChalkboardTeacher,
-	FaCertificate,
-	FaUser,
-	FaUserCircle,
+  FaHome,
+  FaBook,
+  FaCalendarAlt,
+  FaChalkboardTeacher,
+  FaCertificate,
+  FaUser,
+  FaUserCircle,
+  FaWallet,
 } from "react-icons/fa";
 
 const MainLayout = () => {
@@ -35,15 +36,8 @@ const MainLayout = () => {
       shadowColor: "#7776bc",
     },
     {
-      path: "/profile",
-      label: t("nav.profile", { defaultValue: "Profile" }),
-      icon: FaUserCircle,
-      gradient: "from-pink-500 to-rose-600",
-      shadowColor: "#ff6b9d",
-    },
-    {
       path: "/book",
-      label: t("nav.booking", { defaultValue: "Багш захиалах" }),
+      label: t("nav.booking", { defaultValue: "Багшийн сургалтанд суух" }),
       icon: FaCalendarAlt,
       gradient: "from-brand-coral to-pink-600",
       shadowColor: "#ff6b9d",
@@ -57,10 +51,26 @@ const MainLayout = () => {
     },
     {
       path: "/certificates/validate",
-      label: t("nav.verify_certificates", { defaultValue: "Verify Certificates" }),
+      label: t("nav.verify_certificates", {
+        defaultValue: "Verify Certificates",
+      }),
       icon: FaCertificate,
       gradient: "from-brand-lime to-green-500",
       shadowColor: "#c7ecee",
+    },
+    {
+      path: "/wallet",
+      label: t("nav.wallet", { defaultValue: "Wallet" }),
+      icon: FaWallet,
+      gradient: "from-green-500 to-emerald-600",
+      shadowColor: "#10b981",
+    },
+    {
+      path: "/profile",
+      label: t("nav.profile", { defaultValue: "Profile" }),
+      icon: FaUserCircle,
+      gradient: "from-pink-500 to-rose-600",
+      shadowColor: "#ff6b9d",
     },
   ];
 
@@ -163,18 +173,14 @@ const MainLayout = () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Link
-                      to={link.path}
-                      className="block group"
-                    >
+                    <Link to={link.path} className="block group">
                       <motion.div
                         whileHover={{ scale: 1.05, x: 5 }}
                         whileTap={{ scale: 0.95 }}
-                        className={`relative flex items-center lg:gap-3 p-3 lg:p-4 rounded-2xl transition-all ${
-                          isActive
+                        className={`relative flex items-center lg:gap-3 p-3 lg:p-4 rounded-2xl transition-all ${isActive
                             ? `bg-gradient-to-r ${link.gradient} text-white shadow-lg`
                             : "bg-base-100 hover:bg-base-200"
-                        }`}
+                          }`}
                         style={{
                           boxShadow: isActive
                             ? `4px 4px 0px ${link.shadowColor}`
@@ -183,22 +189,24 @@ const MainLayout = () => {
                       >
                         {/* Icon */}
                         <motion.div
-                          animate={isActive ? { rotate: [0, -10, 10, -10, 0] } : {}}
+                          animate={
+                            isActive ? { rotate: [0, -10, 10, -10, 0] } : {}
+                          }
                           transition={{ duration: 0.5 }}
                           className="flex-shrink-0"
                         >
                           <Icon
-                            className={`text-2xl lg:text-xl ${
-                              isActive ? "text-white" : "text-brand-lavender group-hover:text-brand-coral"
-                            }`}
+                            className={`text-2xl lg:text-xl ${isActive
+                                ? "text-white"
+                                : "text-brand-lavender group-hover:text-brand-coral"
+                              }`}
                           />
                         </motion.div>
 
                         {/* Label - hidden on mobile */}
                         <span
-                          className={`hidden lg:block font-bold text-sm ${
-                            isActive ? "text-white" : "text-base-content"
-                          }`}
+                          className={`hidden lg:block font-bold text-sm ${isActive ? "text-white" : "text-base-content"
+                            }`}
                         >
                           {link.label}
                         </span>
@@ -210,7 +218,11 @@ const MainLayout = () => {
                             className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-white rounded-full"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 500,
+                              damping: 30,
+                            }}
                           />
                         )}
                       </motion.div>
@@ -262,7 +274,10 @@ const MainLayout = () => {
         />
 
         {/* Animated gradient blobs */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ left: "5rem" }}>
+        <div
+          className="fixed inset-0 overflow-hidden pointer-events-none"
+          style={{ left: "5rem" }}
+        >
           <motion.div
             className="absolute top-20 right-20 w-96 h-96 rounded-full bg-brand-coral/10 blur-3xl"
             animate={{
@@ -296,10 +311,7 @@ const MainLayout = () => {
           {/* Breadcrumb and Language Switcher Row */}
           <div className="flex items-center justify-between gap-4 mb-6">
             <Breadcrumb />
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="flex-shrink-0"
-            >
+            <motion.div whileHover={{ scale: 1.05 }} className="flex-shrink-0">
               <div className="bg-gradient-to-r from-brand-yellow/20 to-brand-coral/20 p-2 lg:p-3 rounded-2xl border-2 border-brand-yellow/30 shadow-md hover:shadow-lg transition-shadow">
                 <LanguageSwitcher />
               </div>

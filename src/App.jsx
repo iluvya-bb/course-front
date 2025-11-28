@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import AccountPage from "./components/AccountPage"; // For Login/Signup
 import DashboardPage from "./components/DashboardPage";
-import SettingsPage from "./components/SettingsPage";
 import LandingPage from "./components/LandingPage";
 import BookingPageEnhanced from "./components/BookingPageEnhanced";
 import MyBookingsPage from "./components/MyBookingsPage";
@@ -22,6 +21,7 @@ import TestResultsPage from "./components/TestResultsPage";
 import CertificatesPage from "./components/CertificatesPage";
 import CertificateValidationPage from "./components/CertificateValidationPage";
 import TeacherApplicationPage from "./components/TeacherApplicationPage";
+import WalletPage from "./components/WalletPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
 // Teacher Portal Components
@@ -48,11 +48,14 @@ function App() {
 					<Route path="/register" element={<AccountPage />} />
 					{/* Reset Password Route */}
 					<Route path="/reset-password" element={<ResetPasswordPage />} />
-				{/* OAuth Callback Route */}
-				<Route path="/auth/callback" element={<AuthCallbackPage />} />
+					{/* OAuth Callback Route */}
+					<Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-				{/* --- Certificate Validation (Public) --- */}
-				<Route path="/certificates/validate" element={<CertificateValidationPage />} />
+					{/* --- Certificate Validation (Public) --- */}
+					<Route
+						path="/certificates/validate"
+						element={<CertificateValidationPage />}
+					/>
 
 					{/* --- Private Routes (Require Login) --- */}
 					{/* Wrap protected routes with PrivateRoute */}
@@ -61,30 +64,46 @@ function App() {
 						<Route element={<MainLayout />}>
 							{/* User Dashboard is the default after login */}
 							<Route path="/dashboard" element={<DashboardPage />} />
-							<Route path="/settings" element={<SettingsPage />} />
 							<Route path="/book" element={<BookingPageEnhanced />} />
 							<Route path="/my-bookings" element={<MyBookingsPage />} />
 							<Route path="/course/:courseId" element={<CoursePage />} />
 							<Route path="/profile" element={<ProfilePage />} />
 							{/* Test and Certificate Routes */}
 							<Route path="/tests/:testId" element={<TestTakingPage />} />
-							<Route path="/tests/:testId/results/:attemptId" element={<TestResultsPage />} />
+							<Route
+								path="/tests/:testId/results/:attemptId"
+								element={<TestResultsPage />}
+							/>
 							<Route path="/certificates" element={<CertificatesPage />} />
+							{/* Wallet */}
+							<Route path="/wallet" element={<WalletPage />} />
 							{/* Teacher Application */}
-							<Route path="/apply-teacher" element={<TeacherApplicationPage />} />
+							<Route
+								path="/apply-teacher"
+								element={<TeacherApplicationPage />}
+							/>
 						</Route>
 					</Route>
 
 					{/* --- Teacher Portal Routes (Teachers Only) --- */}
-					<Route element={<PrivateRoute allowedRoles={['teacher', 'admin']} />}>
+					<Route element={<PrivateRoute allowedRoles={["teacher", "admin"]} />}>
 						<Route element={<TeacherLayout />}>
 							<Route path="/teacher/dashboard" element={<TeacherDashboard />} />
 							<Route path="/teacher/courses" element={<CourseManagement />} />
 							<Route path="/teacher/courses/new" element={<CourseForm />} />
-							<Route path="/teacher/courses/:courseId/edit" element={<CourseForm />} />
-							<Route path="/teacher/courses/:courseId/lessons" element={<LessonManagement />} />
+							<Route
+								path="/teacher/courses/:courseId/edit"
+								element={<CourseForm />}
+							/>
+							<Route
+								path="/teacher/courses/:courseId/lessons"
+								element={<LessonManagement />}
+							/>
 							<Route path="/teacher/bookings" element={<BookingManagement />} />
-							<Route path="/teacher/availability" element={<AvailabilityScheduler />} />
+							<Route
+								path="/teacher/availability"
+								element={<AvailabilityScheduler />}
+							/>
 						</Route>
 					</Route>
 

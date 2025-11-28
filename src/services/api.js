@@ -18,7 +18,7 @@ axiosInstance.interceptors.request.use(
 	},
 	(error) => {
 		return Promise.reject(error);
-	}
+	},
 );
 
 axiosInstance.interceptors.response.use(
@@ -48,7 +48,10 @@ const API = {
 	forgotPassword: (email) =>
 		axiosInstance.post("/users/forgot-password", { email }),
 	resetPassword: (token, newPassword) =>
-		axiosInstance.post("/users/reset-password", { token, password: newPassword }),
+		axiosInstance.post("/users/reset-password", {
+			token,
+			password: newPassword,
+		}),
 	validateResetToken: (token) =>
 		axiosInstance.post("/users/validate-reset-token", { token }),
 
@@ -65,6 +68,10 @@ const API = {
 	// --- Courses ---
 	getAllCourses: () => axiosInstance.get("/courses"),
 	getCourses: (params) => axiosInstance.get("/courses", { params }),
+	getCoursesTeacher: (params) =>
+		axiosInstance.get("/courses/teacher", { params }),
+	getCoursesWithStats: (params) =>
+		axiosInstance.get("/courses/stats/with-subscriptions", { params }),
 	getCourse: (id) => axiosInstance.get(`/courses/${id}`),
 	createCourse: (data) => axiosInstance.post("/courses", data),
 	updateCourse: (id, data) => axiosInstance.put(`/courses/${id}`, data),
@@ -118,15 +125,20 @@ const API = {
 	// --- Teachers (from teacher.js) ---
 	getTeachers: (params) => axiosInstance.get("/teachers", { params }),
 	createTeacher: (data) => axiosInstance.post("/teachers", data),
+	createMyTeacherProfile: (data) =>
+		axiosInstance.post("/teachers/create-my-profile", data),
 	getTeacher: (id) => axiosInstance.get(`/teachers/${id}`),
 	updateTeacher: (id, data) => axiosInstance.put(`/teachers/${id}`, data),
 	deleteTeacher: (id) => axiosInstance.delete(`/teachers/${id}`),
 
 	// --- Bookings (from booking.js) ---
 	getBookings: (params) => axiosInstance.get("/bookings", { params }),
+	getBookingsTeacher: (params) =>
+		axiosInstance.get("/bookings/teacher", { params }),
 	createBooking: (data) => axiosInstance.post("/bookings", data),
 	getBooking: (id) => axiosInstance.get(`/bookings/${id}`),
-	acceptBooking: (id, data) => axiosInstance.put(`/bookings/${id}/accept`, data),
+	acceptBooking: (id, data) =>
+		axiosInstance.put(`/bookings/${id}/accept`, data),
 	payForBooking: (id, data) => axiosInstance.put(`/bookings/${id}/pay`, data),
 	cancelBooking: (id) => axiosInstance.put(`/bookings/${id}/cancel`),
 	completeBooking: (id) => axiosInstance.put(`/bookings/${id}/complete`),
@@ -157,8 +169,21 @@ const API = {
 
 	// --- Wallet (from wallet.js) ---
 	getMyWallet: () => axiosInstance.get("/wallet/me"),
+	getMyTransactions: (params) =>
+		axiosInstance.get("/wallet/transactions", { params }),
 	initiateDeposit: (data) => axiosInstance.post("/wallet/deposit", data),
 	redeemGiftCard: (data) => axiosInstance.post("/wallet/redeem-card", data),
+
+	// --- QPay (from qpay.js) ---
+	createQPayInvoice: (data) => axiosInstance.post("/qpay/create-invoice", data),
+	checkQPayStatus: (transactionId) =>
+		axiosInstance.get(`/qpay/check/${transactionId}`),
+	getMyQPayTransactions: () => axiosInstance.get("/qpay/transactions"),
+	cancelQPayTransaction: (transactionId) =>
+		axiosInstance.delete(`/qpay/cancel/${transactionId}`),
+
+	// --- Teacher Earnings ---
+	getMyTeacherEarnings: () => axiosInstance.get("/company-balance/my-earnings"),
 
 	// --- Categories ---
 	getCategories: (params) => axiosInstance.get("/categories", { params }),
@@ -189,7 +214,8 @@ const API = {
 	createQuestion: (data) => axiosInstance.post("/questions", data),
 	updateQuestion: (id, data) => axiosInstance.put(`/questions/${id}`, data),
 	deleteQuestion: (id) => axiosInstance.delete(`/questions/${id}`),
-	gradeQuestion: (id, data) => axiosInstance.post(`/questions/${id}/grade`, data),
+	gradeQuestion: (id, data) =>
+		axiosInstance.post(`/questions/${id}/grade`, data),
 
 	// --- Certificates ---
 	getMyCertificates: () => axiosInstance.get("/certificates"),
@@ -199,8 +225,7 @@ const API = {
 		axiosInstance.post("/certificates/validate", { email }),
 	revokeCertificate: (id, data) =>
 		axiosInstance.put(`/certificates/${id}/revoke`, data),
-	sendCertificateEmail: (id) =>
-		axiosInstance.post(`/certificates/${id}/send`),
+	sendCertificateEmail: (id) => axiosInstance.post(`/certificates/${id}/send`),
 	generateCertificatePDF: (id) =>
 		axiosInstance.post(`/certificates/${id}/generate-pdf`),
 	getAllCertificates: (params) =>

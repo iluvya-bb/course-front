@@ -29,7 +29,7 @@ const BookingManagement = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      const response = await API.getMyBookings();
+      const response = await API.getBookingsTeacher();
       setBookings(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
@@ -96,17 +96,19 @@ const BookingManagement = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-12">{t("teacher.bookings.loading")}</div>;
+    return (
+      <div className="text-center py-12">{t("teacher.bookings.loading")}</div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">{t("teacher.bookings.title")}</h1>
-        <p className="text-gray-600 mt-2">
-          {t("teacher.bookings.subtitle")}
-        </p>
+        <h1 className="text-3xl font-bold text-gray-800">
+          {t("teacher.bookings.title")}
+        </h1>
+        <p className="text-gray-600 mt-2">{t("teacher.bookings.subtitle")}</p>
       </div>
 
       {/* Filter */}
@@ -114,24 +116,30 @@ const BookingManagement = () => {
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <FaFilter className="text-gray-600" />
-            <span className="font-medium text-gray-700">{t("teacher.bookings.filter_label")}:</span>
+            <span className="font-medium text-gray-700">
+              {t("teacher.bookings.filter_label")}:
+            </span>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {["all", "pending", "accepted", "paid", "completed", "cancelled"].map(
-              (status) => (
-                <button
-                  key={status}
-                  onClick={() => setStatusFilter(status)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    statusFilter === status
-                      ? "bg-primary text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            {[
+              "all",
+              "pending",
+              "accepted",
+              "paid",
+              "completed",
+              "cancelled",
+            ].map((status) => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${statusFilter === status
+                    ? "bg-primary text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
-                >
-                  {t(`teacher.bookings.status_${status}`)}
-                </button>
-              )
-            )}
+              >
+                {t(`teacher.bookings.status_${status}`)}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -146,7 +154,9 @@ const BookingManagement = () => {
           <p className="text-gray-500">
             {statusFilter === "all"
               ? t("teacher.bookings.no_requests")
-              : t("teacher.bookings.no_status_bookings", { status: t(`teacher.bookings.status_${statusFilter}`) })}
+              : t("teacher.bookings.no_status_bookings", {
+                status: t(`teacher.bookings.status_${statusFilter}`),
+              })}
           </p>
         </div>
       ) : (
@@ -165,56 +175,79 @@ const BookingManagement = () => {
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold text-gray-800">
-                        {new Date(booking.bookingDate).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
+                        {new Date(booking.bookingDate).toLocaleDateString(
+                          "en-US",
+                          {
+                            weekday: "long",
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          },
+                        )}
                       </h3>
                       <p className="text-gray-600 mt-1">
-                        {booking.startTime} - {booking.endTime} ({booking.durationMinutes} min)
+                        {booking.startTime} - {booking.endTime} (
+                        {booking.durationMinutes} min)
                       </p>
                     </div>
                     <span
-                      className={`px-4 py-2 rounded-full text-sm font-bold border-2 ${
-                        statusColors[booking.status] || "bg-gray-100 text-gray-800"
-                      }`}
+                      className={`px-4 py-2 rounded-full text-sm font-bold border-2 ${statusColors[booking.status] ||
+                        "bg-gray-100 text-gray-800"
+                        }`}
                     >
-                      {t(`teacher.bookings.status_${booking.status}`).toUpperCase()}
+                      {t(
+                        `teacher.bookings.status_${booking.status}`,
+                      ).toUpperCase()}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <p className="text-sm text-gray-500">{t("teacher.bookings.student")}</p>
+                      <p className="text-sm text-gray-500">
+                        {t("teacher.bookings.student")}
+                      </p>
                       <p className="font-medium text-gray-800">
-                        {booking.User?.username || t("teacher.bookings.unknown")}
+                        {booking.User?.username ||
+                          t("teacher.bookings.unknown")}
                       </p>
                     </div>
                     {booking.studentCount && (
                       <div>
-                        <p className="text-sm text-gray-500">{t("teacher.bookings.students_count")}</p>
-                        <p className="font-medium text-gray-800">{booking.studentCount}</p>
+                        <p className="text-sm text-gray-500">
+                          {t("teacher.bookings.students_count")}
+                        </p>
+                        <p className="font-medium text-gray-800">
+                          {booking.studentCount}
+                        </p>
                       </div>
                     )}
                     {booking.sessionCount && (
                       <div>
-                        <p className="text-sm text-gray-500">{t("teacher.bookings.sessions_count")}</p>
-                        <p className="font-medium text-gray-800">{booking.sessionCount}</p>
+                        <p className="text-sm text-gray-500">
+                          {t("teacher.bookings.sessions_count")}
+                        </p>
+                        <p className="font-medium text-gray-800">
+                          {booking.sessionCount}
+                        </p>
                       </div>
                     )}
                     {booking.location && (
                       <div>
-                        <p className="text-sm text-gray-500">{t("teacher.bookings.location")}</p>
-                        <p className="font-medium text-gray-800">{booking.location}</p>
+                        <p className="text-sm text-gray-500">
+                          {t("teacher.bookings.location")}
+                        </p>
+                        <p className="font-medium text-gray-800">
+                          {booking.location}
+                        </p>
                       </div>
                     )}
                   </div>
 
                   {booking.notes && (
                     <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                      <p className="text-sm text-gray-500 mb-1">{t("teacher.bookings.notes")}</p>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {t("teacher.bookings.notes")}
+                      </p>
                       <p className="text-gray-800">{booking.notes}</p>
                     </div>
                   )}

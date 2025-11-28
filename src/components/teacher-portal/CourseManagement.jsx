@@ -35,7 +35,7 @@ const CourseManagement = () => {
       const filtered = courses.filter(
         (course) =>
           course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          course.description?.toLowerCase().includes(searchQuery.toLowerCase())
+          course.description?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
       setFilteredCourses(filtered);
     }
@@ -44,7 +44,9 @@ const CourseManagement = () => {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await API.getCourses({ teacherId: user.teacherProfile?.id });
+      const response = await API.getCoursesTeacher({
+        teacherId: user.teacherProfile?.id,
+      });
       const coursesData = response.data.data || [];
       setCourses(coursesData);
       setFilteredCourses(coursesData);
@@ -70,7 +72,9 @@ const CourseManagement = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-xl text-gray-500">{t("teacher.courses.loading")}</div>
+        <div className="text-xl text-gray-500">
+          {t("teacher.courses.loading")}
+        </div>
       </div>
     );
   }
@@ -80,10 +84,10 @@ const CourseManagement = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">{t("teacher.courses.title")}</h1>
-          <p className="text-gray-600 mt-2">
-            {t("teacher.courses.subtitle")}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-800">
+            {t("teacher.courses.title")}
+          </h1>
+          <p className="text-gray-600 mt-2">{t("teacher.courses.subtitle")}</p>
         </div>
         <Link
           to="/teacher/courses/new"
@@ -113,7 +117,9 @@ const CourseManagement = () => {
         <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
           <FaBook className="text-6xl text-gray-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-gray-600 mb-2">
-            {searchQuery ? t("teacher.courses.no_courses_found") : t("teacher.courses.no_courses")}
+            {searchQuery
+              ? t("teacher.courses.no_courses_found")
+              : t("teacher.courses.no_courses")}
           </h3>
           {!searchQuery && (
             <p className="text-gray-500 mb-6">
@@ -190,7 +196,9 @@ const CourseManagement = () => {
                   <div className="flex items-center gap-2 text-gray-600">
                     <FaUsers />
                     <span className="text-sm">
-                      {t("teacher.courses.students_count", { count: course.Subscriptions?.length || 0 })}
+                      {t("teacher.courses.students_count", {
+                        count: course.Subscriptions?.length || 0,
+                      })}
                     </span>
                   </div>
                 </div>

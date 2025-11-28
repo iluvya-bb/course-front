@@ -33,7 +33,7 @@ const UserDropdown = ({ user, onLogout }) => {
 
   // Construct avatar URL
   const avatarUrl = user?.avatar
-    ? `${API.API_URL}/${user.avatar}` // Use API_URL if avatar is relative path
+    ? `${API.defaults.baseURL}/${user.avatar}` // Use API baseURL if avatar is relative path
     : null;
 
   return (

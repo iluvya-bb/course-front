@@ -22,6 +22,8 @@ const TeacherDashboard = () => {
     totalStudents: 0,
     activeBookings: 0,
     totalEarnings: 0,
+    courseEarnings: 0,
+    bookingEarnings: 0,
     pendingBookings: 0,
   });
   const [courses, setCourses] = useState([]);
@@ -36,8 +38,8 @@ const TeacherDashboard = () => {
     try {
       setLoading(true);
 
-      // Fetch courses
-      const coursesRes = await API.getCourses({ teacherId: user.teacherProfile?.id });
+      // Fetch courses with subscription counts (optimized single API call)
+      const coursesRes = await API.getCoursesWithStats({ teacherId: user.teacherProfile?.id });
       const coursesData = coursesRes.data.data || [];
       setCourses(coursesData.slice(0, 3)); // Show only 3 recent courses
 
@@ -46,19 +48,21 @@ const TeacherDashboard = () => {
       const bookingsData = bookingsRes.data.data || [];
       setRecentBookings(bookingsData.slice(0, 5));
 
+      // Fetch course earnings from CompanyTransaction
+      let courseEarnings = 0;
+      try {
+        const earningsRes = await API.getMyTeacherEarnings();
+        courseEarnings = parseFloat(earningsRes.data.data.totalEarnings) || 0;
+      } catch (earningsError) {
+        console.error("Failed to fetch course earnings:", earningsError);
+        // If teacher earnings endpoint fails, continue with 0
+      }
+
       // Calculate stats
       const totalCourses = coursesData.length;
 
-      // Count total students across all courses
-      let totalStudents = 0;
-      for (const course of coursesData) {
-        try {
-          const subsRes = await API.getSubscribedUsers(course.id);
-          totalStudents += subsRes.data.data?.length || 0;
-        } catch (err) {
-          console.error(`Failed to fetch subscriptions for course ${course.id}:`, err);
-        }
-      }
+      // Count total students across all courses (now using pre-computed counts)
+      const totalStudents = coursesData.reduce((sum, course) => sum + (course.studentCount || 0), 0);
 
       const activeBookings = bookingsData.filter(
         (b) => b.status === "accepted" || b.status === "paid"
@@ -68,15 +72,21 @@ const TeacherDashboard = () => {
         (b) => b.status === "pending"
       ).length;
 
-      const totalEarnings = bookingsData
+      // Calculate booking earnings (from private tutoring)
+      const bookingEarnings = bookingsData
         .filter((b) => b.status === "completed")
         .reduce((sum, b) => sum + (b.price || 0), 0);
+
+      // Total earnings = course sales + booking earnings
+      const totalEarnings = courseEarnings + bookingEarnings;
 
       setStats({
         totalCourses,
         totalStudents,
         activeBookings,
         totalEarnings,
+        courseEarnings,
+        bookingEarnings,
         pendingBookings,
       });
     } catch (error) {

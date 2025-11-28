@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import {
-  FaClock,
-  FaSave,
-  FaPlus,
-  FaTrash,
-  FaBan,
-} from "react-icons/fa";
+import { FaClock, FaSave, FaPlus, FaTrash, FaBan } from "react-icons/fa";
 import API from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
 import { Label } from "../ui/label";
@@ -50,8 +44,11 @@ const AvailabilityScheduler = () => {
   useEffect(() => {
     if (teacherId) {
       fetchData();
+    } else if (user) {
+      // User is loaded but no teacher profile
+      setLoading(false);
     }
-  }, [teacherId]);
+  }, [teacherId, user]);
 
   const fetchData = async () => {
     try {
@@ -132,14 +129,68 @@ const AvailabilityScheduler = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-12">{t("teacher.availability.loading")}</div>;
+    return (
+      <div className="text-center py-12">
+        {t("teacher.availability.loading")}
+      </div>
+    );
+  }
+
+  if (!teacherId) {
+    const handleCreateProfile = async () => {
+      try {
+        setLoading(true);
+        await API.createMyTeacherProfile({
+          name: user?.username,
+          bio: `Teacher at our platform`,
+        });
+        alert(t("teacher.availability.profile_created", "Teacher profile created successfully! Please refresh the page."));
+        window.location.reload();
+      } catch (error) {
+        console.error("Failed to create teacher profile:", error);
+        alert(error.response?.data?.error || t("teacher.availability.profile_failed", "Failed to create teacher profile"));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="text-center py-12">
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-8 max-w-2xl mx-auto">
+          <p className="text-yellow-800 text-lg font-semibold mb-4">
+            {t("teacher.availability.no_profile", "Teacher profile not found")}
+          </p>
+          <div className="text-left text-yellow-700 space-y-2">
+            <p>
+              {user?.role === "admin"
+                ? t("teacher.availability.admin_note", "As an admin, you need a teacher profile to manage availability.")
+                : t("teacher.availability.teacher_note", "Your teacher application may not have been approved yet. Please check your application status.")}
+            </p>
+            <p className="text-sm mt-4">
+              <strong>Current role:</strong> {user?.role || "unknown"}
+            </p>
+          </div>
+          {(user?.role === "teacher" || user?.role === "admin") && (
+            <button
+              onClick={handleCreateProfile}
+              disabled={loading}
+              className="mt-6 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50"
+            >
+              {loading ? t("teacher.availability.creating", "Creating...") : t("teacher.availability.create_profile", "Create Teacher Profile")}
+            </button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-800">{t("teacher.availability.title")}</h1>
+        <h1 className="text-3xl font-bold text-gray-800">
+          {t("teacher.availability.title")}
+        </h1>
         <p className="text-gray-600 mt-2">
           {t("teacher.availability.subtitle")}
         </p>
@@ -151,7 +202,9 @@ const AvailabilityScheduler = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-2xl shadow-lg p-8"
       >
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">{t("teacher.availability.weekly_title")}</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          {t("teacher.availability.weekly_title")}
+        </h2>
 
         {/* Current Slots */}
         <div className="space-y-4 mb-6">
@@ -209,12 +262,17 @@ const AvailabilityScheduler = () => {
 
         {/* Add New Slot */}
         <div className="p-6 bg-primary/5 rounded-xl mb-6">
-          <h3 className="font-bold text-gray-800 mb-4">{t("teacher.availability.add_slot")}</h3>
+          <h3 className="font-bold text-gray-800 mb-4">
+            {t("teacher.availability.add_slot")}
+          </h3>
           <div className="flex flex-col md:flex-row gap-4">
             <select
               value={newSlot.dayOfWeek}
               onChange={(e) =>
-                setNewSlot((prev) => ({ ...prev, dayOfWeek: parseInt(e.target.value) }))
+                setNewSlot((prev) => ({
+                  ...prev,
+                  dayOfWeek: parseInt(e.target.value),
+                }))
               }
               className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
             >
@@ -257,7 +315,11 @@ const AvailabilityScheduler = () => {
           className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-bold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all disabled:opacity-50 disabled:transform-none"
         >
           <FaSave />
-          <span>{saving ? t("teacher.availability.saving") : t("teacher.availability.save")}</span>
+          <span>
+            {saving
+              ? t("teacher.availability.saving")
+              : t("teacher.availability.save")}
+          </span>
         </button>
       </motion.div>
 
@@ -268,26 +330,37 @@ const AvailabilityScheduler = () => {
         transition={{ delay: 0.1 }}
         className="bg-white rounded-2xl shadow-lg p-8"
       >
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">{t("teacher.availability.blocked_title")}</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">
+          {t("teacher.availability.blocked_title")}
+        </h2>
 
         {/* Add New Blocked Date */}
         <div className="p-6 bg-red-50 rounded-xl mb-6">
-          <h3 className="font-bold text-gray-800 mb-4">{t("teacher.availability.block_date")}</h3>
+          <h3 className="font-bold text-gray-800 mb-4">
+            {t("teacher.availability.block_date")}
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <Label htmlFor="blockDate">{t("teacher.availability.date")}</Label>
+              <Label htmlFor="blockDate">
+                {t("teacher.availability.date")}
+              </Label>
               <input
                 id="blockDate"
                 type="date"
                 value={newBlock.blockedDate}
                 onChange={(e) =>
-                  setNewBlock((prev) => ({ ...prev, blockedDate: e.target.value }))
+                  setNewBlock((prev) => ({
+                    ...prev,
+                    blockedDate: e.target.value,
+                  }))
                 }
                 className="mt-2 w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
               />
             </div>
             <div>
-              <Label htmlFor="blockReason">{t("teacher.availability.reason")}</Label>
+              <Label htmlFor="blockReason">
+                {t("teacher.availability.reason")}
+              </Label>
               <input
                 id="blockReason"
                 type="text"
@@ -300,20 +373,29 @@ const AvailabilityScheduler = () => {
               />
             </div>
             <div>
-              <Label htmlFor="blockStart">{t("teacher.availability.start_time")}</Label>
+              <Label htmlFor="blockStart">
+                {t("teacher.availability.start_time")}
+              </Label>
               <input
                 id="blockStart"
                 type="time"
                 value={newBlock.startTime}
                 onChange={(e) =>
-                  setNewBlock((prev) => ({ ...prev, startTime: e.target.value }))
+                  setNewBlock((prev) => ({
+                    ...prev,
+                    startTime: e.target.value,
+                  }))
                 }
                 className="mt-2 w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
               />
-              <p className="text-xs text-gray-500 mt-1">{t("teacher.availability.all_day_hint")}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {t("teacher.availability.all_day_hint")}
+              </p>
             </div>
             <div>
-              <Label htmlFor="blockEnd">{t("teacher.availability.end_time")}</Label>
+              <Label htmlFor="blockEnd">
+                {t("teacher.availability.end_time")}
+              </Label>
               <input
                 id="blockEnd"
                 type="time"
@@ -337,7 +419,9 @@ const AvailabilityScheduler = () => {
         {/* Blocked Dates List */}
         <div className="space-y-3">
           {blockedDates.length === 0 ? (
-            <p className="text-center text-gray-500 py-8">{t("teacher.availability.no_blocked")}</p>
+            <p className="text-center text-gray-500 py-8">
+              {t("teacher.availability.no_blocked")}
+            </p>
           ) : (
             blockedDates.map((block) => (
               <div
@@ -348,7 +432,8 @@ const AvailabilityScheduler = () => {
                   <p className="font-bold text-gray-800">
                     {new Date(block.blockedDate).toLocaleDateString()}
                     {block.startTime && ` - ${block.startTime}`}
-                    {block.endTime && ` ${t("teacher.availability.to")} ${block.endTime}`}
+                    {block.endTime &&
+                      ` ${t("teacher.availability.to")} ${block.endTime}`}
                   </p>
                   {block.reason && (
                     <p className="text-sm text-gray-600 mt-1">{block.reason}</p>

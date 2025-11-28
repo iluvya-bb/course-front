@@ -106,11 +106,10 @@ const TeacherLayout = () => {
                     <Link
                       key={link.path}
                       to={link.path}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                        isActive
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${isActive
                           ? "bg-primary text-white font-semibold shadow-lg"
                           : "text-base-content hover:bg-primary/20 hover:text-primary"
-                      }`}
+                        }`}
                     >
                       <Icon className="text-sm" />
                       <span className="text-sm font-medium">{link.label}</span>
@@ -170,11 +169,10 @@ const TeacherLayout = () => {
                       key={link.path}
                       to={link.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                        isActive
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
                           ? "bg-primary text-white font-semibold"
                           : "text-base-content hover:bg-primary/20 hover:text-primary"
-                      }`}
+                        }`}
                     >
                       <Icon />
                       <span>{link.label}</span>
