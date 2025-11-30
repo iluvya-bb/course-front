@@ -23,6 +23,14 @@ import {
 	FaTimesCircle,
 } from "react-icons/fa";
 
+const getAvatarUrl = (avatar) => {
+	if (!avatar) return null;
+	if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+		return avatar;
+	}
+	return `${import.meta.env.VITE_API_URL}/${avatar}`;
+};
+
 const ProfilePage = () => {
 	const { t } = useTranslation(["translation", "settings"]);
 	const { user, setUser } = useAuth();
@@ -49,8 +57,7 @@ const ProfilePage = () => {
 				email: user.email || "",
 			});
 			if (user.avatar) {
-				// --- FIX: Use Vite env variable ---
-				setAvatarPreview(`${import.meta.env.VITE_API_URL}/${user.avatar}`);
+				setAvatarPreview(getAvatarUrl(user.avatar));
 			} else {
 				setAvatarPreview(null);
 			}
@@ -98,10 +105,7 @@ const ProfilePage = () => {
 			setAvatarPreview(URL.createObjectURL(file));
 		} else {
 			setAvatarFile(null);
-			// --- FIX: Use Vite env variable ---
-			setAvatarPreview(
-				user?.avatar ? `${import.meta.env.VITE_API_URL}/${user.avatar}` : null,
-			);
+			setAvatarPreview(getAvatarUrl(user?.avatar));
 		}
 	};
 
@@ -125,10 +129,7 @@ const ProfilePage = () => {
 			setSuccess(t("profile.update_success", "Profile updated successfully!"));
 			setAvatarFile(null);
 			if (response.data.data.avatar) {
-				// --- FIX: Use Vite env variable ---
-				setAvatarPreview(
-					`${import.meta.env.VITE_API_URL}/${response.data.data.avatar}`,
-				);
+				setAvatarPreview(getAvatarUrl(response.data.data.avatar));
 			}
 			setTimeout(() => setSuccess(""), 3000);
 		} catch (err) {
