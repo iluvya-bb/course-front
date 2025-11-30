@@ -146,21 +146,6 @@ const UserDropdown = ({ user, onLogout }) => {
 									{t("nav.my_bookings", { defaultValue: "Миний захиалгууд" })}
 								</span>
 							</Link>
-
-							{/* Settings Link */}
-							<Link
-								to="/settings"
-								onClick={handleLinkClick}
-								className="group flex items-center w-full px-5 py-3 text-sm font-medium text-gray-700 hover:bg-gradient-to-r hover:from-primary/5 hover:to-primary/10 transition-all duration-200"
-								role="menuitem"
-							>
-								<div className="flex items-center justify-center h-8 w-8 rounded-lg bg-gray-50 group-hover:bg-gray-100 transition-colors duration-200 mr-3">
-									<FaCog className="h-4 w-4 text-gray-600" />
-								</div>
-								<span className="group-hover:text-primary transition-colors duration-200">
-									{t("dashboard.settings", { defaultValue: "Тохиргоо" })}
-								</span>
-							</Link>
 						</div>
 
 						{/* Logout Button */}
