@@ -6,6 +6,7 @@ import {
 	FaStar,
 	FaCheckCircle,
 } from "react-icons/fa";
+import { API_URL } from "../services/api";
 
 const TeacherCard = ({ teacher, selected, onClick }) => {
 	const { t } = useTranslation(["translation", "booking"]);
@@ -16,21 +17,21 @@ const TeacherCard = ({ teacher, selected, onClick }) => {
 			onClick={() => onClick(teacher)}
 			className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
 				selected
-					? "border-indigo-600 bg-indigo-50 shadow-md"
-					: "border-gray-200 bg-white hover:border-indigo-300 hover:shadow-sm"
+					? "border-primary bg-primary/10 shadow-md"
+					: "border-gray-200 bg-white hover:border-primary/50 hover:shadow-sm"
 			}`}
 		>
 			<div className="flex items-start gap-4">
 				{/* Teacher Avatar */}
 				<div className="flex-shrink-0">
-					{teacher.profileImage ? (
+					{teacher.avatar ? (
 						<img
-							src={teacher.profileImage}
+							src={`${API_URL}/${teacher.avatar}`}
 							alt={teacher.name}
 							className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
 						/>
 					) : (
-						<div className="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+						<div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
 							<FaUserTie className="text-white text-2xl" />
 						</div>
 					)}
@@ -43,7 +44,7 @@ const TeacherCard = ({ teacher, selected, onClick }) => {
 							<h3 className="font-semibold text-gray-900 text-lg flex items-center gap-2">
 								{teacher.name}
 								{selected && (
-									<FaCheckCircle className="text-indigo-600 text-sm" />
+									<FaCheckCircle className="text-primary text-sm" />
 								)}
 							</h3>
 							{teacher.title && (
@@ -54,7 +55,7 @@ const TeacherCard = ({ teacher, selected, onClick }) => {
 						{/* Hourly Rate */}
 						{teacher.hourlyRate && (
 							<div className="text-right flex-shrink-0">
-								<div className="flex items-center gap-1 text-green-600 font-bold">
+								<div className="flex items-center gap-1 text-secondary font-bold">
 									<FaMoneyBillWave className="text-sm" />
 									<span>₮{teacher.hourlyRate.toLocaleString()}</span>
 								</div>
@@ -67,7 +68,7 @@ const TeacherCard = ({ teacher, selected, onClick }) => {
 
 					{/* Specialization */}
 					{teacher.specialization && (
-						<p className="text-sm text-indigo-700 mt-2 font-medium">
+						<p className="text-sm text-primary mt-2 font-medium">
 							{teacher.specialization}
 						</p>
 					)}

@@ -17,9 +17,6 @@ function TeacherApplicationPage() {
 	const [success, setSuccess] = useState("");
 
 	const [formData, setFormData] = useState({
-		idNumFrontImage: "",
-		idNumBackImage: "",
-		proofDocument: "",
 		bankAccountNumber: "",
 		phoneNumber: "",
 		idNum: "",
@@ -72,20 +69,6 @@ function TeacherApplicationPage() {
 		}
 	};
 
-	const uploadFile = async (file) => {
-		// In a real application, you would upload to S3 or your server
-		// For now, we'll simulate by converting to base64 or use a placeholder
-		return new Promise((resolve) => {
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				// In production, upload to S3 and return the URL
-				// For now, return a placeholder URL
-				resolve(`/uploads/${file.name}`);
-			};
-			reader.readAsDataURL(file);
-		});
-	};
-
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setSubmitting(true);
@@ -113,19 +96,21 @@ function TeacherApplicationPage() {
 				throw new Error(t("teacher_application.proof_pdf_error"));
 			}
 
-			// Upload files (in production, this should upload to S3)
-			const [idFrontUrl, idBackUrl, proofUrl] = await Promise.all([
-				uploadFile(files.idFront),
-				uploadFile(files.idBack),
-				uploadFile(files.proof),
-			]);
+			// Upload files to server
+			const uploadFormData = new FormData();
+			uploadFormData.append("idFront", files.idFront);
+			uploadFormData.append("idBack", files.idBack);
+			uploadFormData.append("proof", files.proof);
 
-			// Submit application
+			const uploadResponse = await API.uploadTeacherApplicationDocuments(uploadFormData);
+			const uploadedFiles = uploadResponse.data.data;
+
+			// Submit application with uploaded file URLs
 			const data = {
 				...formData,
-				idNumFrontImage: idFrontUrl,
-				idNumBackImage: idBackUrl,
-				proofDocument: proofUrl,
+				idNumFrontImage: uploadedFiles.idNumFrontImage,
+				idNumBackImage: uploadedFiles.idNumBackImage,
+				proofDocument: uploadedFiles.proofDocument,
 			};
 
 			await API.submitTeacherApplication(data);
@@ -229,9 +214,6 @@ function TeacherApplicationPage() {
 								onClick={() => {
 									setApplication(null);
 									setFormData({
-										idNumFrontImage: "",
-										idNumBackImage: "",
-										proofDocument: "",
 										bankAccountNumber: "",
 										phoneNumber: "",
 										idNum: "",

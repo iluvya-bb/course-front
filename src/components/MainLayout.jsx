@@ -17,6 +17,8 @@ import {
 	FaUser,
 	FaUserCircle,
 	FaWallet,
+	FaTicketAlt,
+	FaBoxOpen,
 } from "react-icons/fa";
 
 const MainLayout = () => {
@@ -34,6 +36,13 @@ const MainLayout = () => {
 			icon: FaHome,
 			gradient: "from-brand-lavender to-purple-600",
 			shadowColor: "#7776bc",
+		},
+		{
+			path: "/packages",
+			label: t("nav.packages", { defaultValue: "Багцууд" }),
+			icon: FaBoxOpen,
+			gradient: "from-indigo-500 to-purple-600",
+			shadowColor: "#6366f1",
 		},
 		{
 			path: "/book",
@@ -64,6 +73,13 @@ const MainLayout = () => {
 			icon: FaWallet,
 			gradient: "from-green-500 to-emerald-600",
 			shadowColor: "#10b981",
+		},
+		{
+			path: "/promocode",
+			label: t("nav.promocode", { defaultValue: "Promo Code" }),
+			icon: FaTicketAlt,
+			gradient: "from-amber-500 to-orange-600",
+			shadowColor: "#f59e0b",
 		},
 		{
 			path: "/profile",

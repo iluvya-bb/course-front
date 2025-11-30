@@ -114,11 +114,20 @@ const CourseForm = () => {
     setLoading(true);
 
     try {
+      // Ensure teacher profile exists
+      if (!user.teacherProfile?.id) {
+        alert(t("teacher.course_form.no_teacher_profile") || "Teacher profile not found. Please contact support.");
+        setLoading(false);
+        return;
+      }
+
+      console.log("Creating course with teacherId:", user.teacherProfile.id);
+
       const data = new FormData();
       data.append("title", formData.title);
       data.append("description", formData.description);
       data.append("price", formData.price);
-      data.append("teacherId", user.teacherProfile?.id);
+      data.append("teacherId", user.teacherProfile.id);
       if (formData.categoryId) data.append("categoryId", formData.categoryId);
 
       // Append categoryIds for multiple categories

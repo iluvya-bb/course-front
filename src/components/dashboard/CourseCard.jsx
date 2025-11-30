@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
-import { FaGraduationCap, FaBook, FaCheckCircle, FaClock, FaStar, FaArrowRight } from "react-icons/fa";
+import { FaGraduationCap, FaBook, FaCheckCircle, FaClock, FaStar, FaArrowRight, FaTags } from "react-icons/fa";
 
 const CourseCard = ({ course, onSubscribe }) => {
 	const { t } = useTranslation();
@@ -55,9 +55,9 @@ const CourseCard = ({ course, onSubscribe }) => {
 					</div>
 				)}
 
-				{/* Subscribed Badge */}
-				{course.subscribed && (
-					<div className="absolute top-4 right-4">
+				{/* Subscribed Badge or Sale Badge */}
+				<div className="absolute top-4 right-4 flex flex-col gap-2">
+					{course.subscribed && (
 						<motion.span
 							initial={{ scale: 0 }}
 							animate={{ scale: 1 }}
@@ -66,16 +66,32 @@ const CourseCard = ({ course, onSubscribe }) => {
 							<FaCheckCircle />
 							{t("dashboard.subscribed")}
 						</motion.span>
-					</div>
-				)}
+					)}
+					{!course.subscribed && course.saleInfo && (
+						<motion.span
+							initial={{ scale: 0, rotate: -10 }}
+							animate={{ scale: 1, rotate: 0 }}
+							transition={{ type: "spring", stiffness: 500 }}
+							className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-xs font-bold text-white shadow-lg animate-pulse"
+						>
+							<FaTags />
+							{course.saleInfo.badgeText || `${course.saleInfo.discountValue}${course.saleInfo.discountType === 'percentage' ? '%' : '₮'} OFF`}
+						</motion.span>
+					)}
+				</div>
 
 				{/* Rating Badge (bottom left) */}
-				<div className="absolute bottom-4 left-4">
-					<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-yellow/90 backdrop-blur-md rounded-full text-xs font-bold text-white shadow-lg">
-						<FaStar className="text-xs" />
-						5.0
-					</span>
-				</div>
+				{course.ratingInfo?.averageRating && (
+					<div className="absolute bottom-4 left-4">
+						<span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-yellow/90 backdrop-blur-md rounded-full text-xs font-bold text-white shadow-lg">
+							<FaStar className="text-xs" />
+							{course.ratingInfo.averageRating}
+							{course.ratingInfo.totalRatings > 0 && (
+								<span className="text-white/80">({course.ratingInfo.totalRatings})</span>
+							)}
+						</span>
+					</div>
+				)}
 
 				{/* Hover Arrow Icon */}
 				<div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -155,9 +171,20 @@ const CourseCard = ({ course, onSubscribe }) => {
 						<div className="flex items-center justify-between">
 							<div>
 								{course.price != null && course.price > 0 ? (
-									<div className="text-3xl font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
-										₮{course.price.toLocaleString()}
-									</div>
+									course.saleInfo ? (
+										<div className="flex items-center gap-2">
+											<div className="text-3xl font-black bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
+												₮{course.saleInfo.salePrice.toLocaleString()}
+											</div>
+											<div className="text-lg text-gray-400 line-through">
+												₮{course.price.toLocaleString()}
+											</div>
+										</div>
+									) : (
+										<div className="text-3xl font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
+											₮{course.price.toLocaleString()}
+										</div>
+									)
 								) : (
 									<div className="text-3xl font-black bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">
 										{t("free", { defaultValue: "FREE" })}
@@ -165,6 +192,13 @@ const CourseCard = ({ course, onSubscribe }) => {
 								)}
 							</div>
 						</div>
+
+						{/* Sale savings info */}
+						{course.saleInfo && (
+							<div className="text-sm text-green-600 font-semibold">
+								{t("dashboard.save", { defaultValue: "Save" })} ₮{course.saleInfo.discount.toLocaleString()}!
+							</div>
+						)}
 
 						{/* Enroll Button */}
 						<Link to={`/course/${course.id}`} className="block">

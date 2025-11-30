@@ -10,11 +10,11 @@ import {
   FaVideo,
   FaImage,
   FaSave,
-  FaPaperPlane,
   FaCheckCircle,
   FaClock,
   FaTimesCircle,
   FaInfoCircle,
+  FaEyeSlash,
 } from "react-icons/fa";
 import API from "../../services/api";
 import { Input } from "../ui/input";
@@ -95,16 +95,29 @@ const LessonManagement = () => {
     }
   };
 
-  const handleRequestPublication = async (lessonId) => {
+  const handlePublish = async (lessonId) => {
     if (!confirm(t("teacher.lessons.publish_confirm"))) return;
 
     try {
       await API.requestLessonPublication(lessonId);
-      alert(t("teacher.lessons.publish_success"));
+      alert(t("teacher.lessons.published_success"));
       fetchCourseAndLessons();
     } catch (error) {
-      console.error("Failed to request publication:", error);
+      console.error("Failed to publish lesson:", error);
       alert(error.response?.data?.error || t("teacher.lessons.publish_failed"));
+    }
+  };
+
+  const handleUnpublish = async (lessonId) => {
+    if (!confirm(t("teacher.lessons.unpublish_confirm"))) return;
+
+    try {
+      await API.unpublishLesson(lessonId);
+      alert(t("teacher.lessons.unpublished_success"));
+      fetchCourseAndLessons();
+    } catch (error) {
+      console.error("Failed to unpublish lesson:", error);
+      alert(error.response?.data?.error || t("teacher.lessons.unpublish_failed"));
     }
   };
 
@@ -148,39 +161,76 @@ const LessonManagement = () => {
     setUploading(true);
 
     try {
+      // For new lessons, video is required
       if (!videoS3Key && !editingLesson) {
         alert(t("teacher.lessons.video_upload.no_file"));
         setUploading(false);
         return;
       }
 
-      // Create lesson with S3 video
-      const lessonData = {
-        courseId: courseId,
-        title: formData.title,
-        content: formData.content,
-        wysiwygContent: formData.wysiwygContent,
-        videoS3Key: videoS3Key,
-      };
+      if (editingLesson) {
+        // Update existing lesson
+        const updateData = {
+          title: formData.title,
+          content: formData.content,
+          wysiwygContent: formData.wysiwygContent,
+        };
 
-      const response = await API.createLessonWithS3Video(lessonData);
-      const lesson = response.data.data;
+        // If a new video was uploaded, include it
+        if (videoS3Key) {
+          updateData.videoS3Key = videoS3Key;
+        }
 
-      console.log("Lesson created:", lesson);
-      setCreatedLessonId(lesson.id);
-      setTranscodingStatus("pending");
+        await API.updateLesson(editingLesson.id, updateData);
 
-      // Now trigger transcoding
-      try {
-        await API.startTranscoding({
-          lessonId: lesson.id,
-          s3Key: videoS3Key,
-        });
-        setTranscodingStatus("processing");
-        alert(t("teacher.lessons.video_upload.upload_complete"));
-      } catch (transcodingError) {
-        console.error("Failed to start transcoding:", transcodingError);
-        alert(t("teacher.lessons.transcoding.failed_msg"));
+        // If new video was uploaded, start transcoding
+        if (videoS3Key) {
+          try {
+            await API.startTranscoding({
+              lessonId: editingLesson.id,
+              s3Key: videoS3Key,
+            });
+            setCreatedLessonId(editingLesson.id);
+            setTranscodingStatus("processing");
+            alert(t("teacher.lessons.video_upload.upload_complete"));
+          } catch (transcodingError) {
+            console.error("Failed to start transcoding:", transcodingError);
+            alert(t("teacher.lessons.transcoding.failed_msg"));
+          }
+        } else {
+          alert(t("teacher.lessons.update_success"));
+          resetForm();
+          fetchCourseAndLessons();
+        }
+      } else {
+        // Create new lesson with S3 video
+        const lessonData = {
+          courseId: courseId,
+          title: formData.title,
+          content: formData.content,
+          wysiwygContent: formData.wysiwygContent,
+          videoS3Key: videoS3Key,
+        };
+
+        const response = await API.createLessonWithS3Video(lessonData);
+        const lesson = response.data.data;
+
+        console.log("Lesson created:", lesson);
+        setCreatedLessonId(lesson.id);
+        setTranscodingStatus("pending");
+
+        // Now trigger transcoding
+        try {
+          await API.startTranscoding({
+            lessonId: lesson.id,
+            s3Key: videoS3Key,
+          });
+          setTranscodingStatus("processing");
+          alert(t("teacher.lessons.video_upload.upload_complete"));
+        } catch (transcodingError) {
+          console.error("Failed to start transcoding:", transcodingError);
+          alert(t("teacher.lessons.transcoding.failed_msg"));
+        }
       }
     } catch (error) {
       console.error("Failed to save lesson:", error);
@@ -311,8 +361,18 @@ const LessonManagement = () => {
             </div>
 
             {/* Direct Video Upload Component */}
-            {!editingLesson && !createdLessonId && (
+            {!createdLessonId && (
               <div className="mb-6">
+                {editingLesson && editingLesson.videoPath && (
+                  <div className="mb-4 p-3 bg-gray-100 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      {t("teacher.lessons.current_video")}: {editingLesson.videoPath.split('/').pop()}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {t("teacher.lessons.upload_new_to_replace")}
+                    </p>
+                  </div>
+                )}
                 <DirectVideoUpload
                   onUploadComplete={handleVideoUploadComplete}
                   onError={(err) => console.error("Video upload error:", err)}
@@ -404,12 +464,22 @@ const LessonManagement = () => {
                 <div className="flex flex-col gap-2">
                   {(lesson.publicationStatus === "draft" || lesson.publicationStatus === "rejected") && (
                     <button
-                      onClick={() => handleRequestPublication(lesson.id)}
-                      className="flex items-center justify-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg font-medium transition-all"
-                      title={t("teacher.lessons.request_publish_title")}
+                      onClick={() => handlePublish(lesson.id)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all"
+                      title={t("teacher.lessons.publish_title")}
                     >
-                      <FaPaperPlane />
-                      <span className="hidden sm:inline">{t("teacher.lessons.request_publish")}</span>
+                      <FaCheckCircle />
+                      <span className="hidden sm:inline">{t("teacher.lessons.publish")}</span>
+                    </button>
+                  )}
+                  {lesson.publicationStatus === "approved" && (
+                    <button
+                      onClick={() => handleUnpublish(lesson.id)}
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-all"
+                      title={t("teacher.lessons.unpublish_title")}
+                    >
+                      <FaEyeSlash />
+                      <span className="hidden sm:inline">{t("teacher.lessons.unpublish")}</span>
                     </button>
                   )}
                   <div className="flex gap-2">

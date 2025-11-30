@@ -54,6 +54,8 @@ const API = {
 		}),
 	validateResetToken: (token) =>
 		axiosInstance.post("/users/validate-reset-token", { token }),
+	changePassword: (currentPassword, newPassword) =>
+		axiosInstance.post("/users/change-password", { currentPassword, newPassword }),
 
 	// --- Users (from user.js) ---
 	getUsers: (params) => axiosInstance.get("/users", { params }),
@@ -90,6 +92,7 @@ const API = {
 
 	// --- Lessons (from lesson.js) ---
 	getLessons: (params) => axiosInstance.get("/lessons", { params }),
+	getPublishedLessons: (params) => axiosInstance.get("/lessons/published", { params }),
 	createLesson: (data) => axiosInstance.post("/lessons", data),
 	getLesson: (id) => axiosInstance.get(`/lessons/${id}`),
 	updateLesson: (id, data) => axiosInstance.put(`/lessons/${id}`, data),
@@ -100,6 +103,8 @@ const API = {
 	// --- Lesson Publication Workflow ---
 	requestLessonPublication: (id) =>
 		axiosInstance.post(`/lessons/${id}/request-publish`),
+	unpublishLesson: (id) =>
+		axiosInstance.post(`/lessons/${id}/unpublish`),
 	approveLessonPublication: (id) =>
 		axiosInstance.post(`/lessons/${id}/approve-publish`),
 	rejectLessonPublication: (id, reason) =>
@@ -170,6 +175,7 @@ const API = {
 
 	// --- Promo Codes (from promocode.js) ---
 	validatePromoCode: (data) => axiosInstance.post("/promocodes/validate", data),
+	redeemPromoCode: (data) => axiosInstance.post("/promocodes/redeem", data),
 	getPromoCodes: (params) => axiosInstance.get("/promocodes", { params }),
 	createPromoCode: (data) => axiosInstance.post("/promocodes", data),
 	getPromoCode: (id) => axiosInstance.get(`/promocodes/${id}`),
@@ -198,6 +204,11 @@ const API = {
 	getCategories: (params) => axiosInstance.get("/categories", { params }),
 	getCategory: (id) => axiosInstance.get(`/categories/${id}`),
 
+	// --- Subjects ---
+	getSubjects: (params) => axiosInstance.get("/subjects", { params }),
+	getSubjectsWithCourses: () => axiosInstance.get("/subjects/with-courses"),
+	getSubject: (id) => axiosInstance.get(`/subjects/${id}`),
+
 	// --- Testimonials ---
 	getTestimonials: (params) => axiosInstance.get("/testimonials", { params }),
 	getTestimonial: (id) => axiosInstance.get(`/testimonials/${id}`),
@@ -216,6 +227,13 @@ const API = {
 	getTestResults: (testId, attemptId) =>
 		axiosInstance.get(`/tests/${testId}/results/${attemptId}`),
 	getUserAttempts: (testId) => axiosInstance.get(`/tests/${testId}/attempts`),
+	getMyInProgressAttempts: () => axiosInstance.get("/tests/my-in-progress"),
+	getAllTestAttempts: (params) => axiosInstance.get("/tests/attempts/all", { params }),
+	gradeAttempt: (testId, attemptId, data) =>
+		axiosInstance.post(`/tests/${testId}/attempts/${attemptId}/grade`, data),
+
+	// --- Editor Uploads ---
+	uploadEditorImage: (data) => axiosInstance.post("/editor-uploads", data),
 
 	// --- Questions ---
 	getQuestions: (params) => axiosInstance.get("/questions", { params }),
@@ -237,12 +255,20 @@ const API = {
 	sendCertificateEmail: (id) => axiosInstance.post(`/certificates/${id}/send`),
 	generateCertificatePDF: (id) =>
 		axiosInstance.post(`/certificates/${id}/generate-pdf`),
+	downloadCertificatePDF: (certificateId) =>
+		axiosInstance.get(`/certificates/${certificateId}/download`, { responseType: 'blob' }),
 	getAllCertificates: (params) =>
 		axiosInstance.get("/certificates/admin/all", { params }),
+	getTestCertificates: (testId) =>
+		axiosInstance.get("/certificates/admin/all", { params: { testId } }),
 
 	// --- Teacher Applications ---
 	submitTeacherApplication: (data) =>
 		axiosInstance.post("/teacher-applications", data),
+	uploadTeacherApplicationDocuments: (formData) =>
+		axiosInstance.post("/teacher-applications/upload-documents", formData, {
+			headers: { "Content-Type": "multipart/form-data" },
+		}),
 	getMyTeacherApplication: () =>
 		axiosInstance.get("/teacher-applications/my-application"),
 	getTeacherApplications: (params) =>
@@ -255,6 +281,20 @@ const API = {
 		axiosInstance.post(`/teacher-applications/${id}/reject`, data),
 	updateTeacherApplicationNotes: (id, data) =>
 		axiosInstance.put(`/teacher-applications/${id}/notes`, data),
+
+	// --- Packages ---
+	getPackages: () => axiosInstance.get("/packages"),
+	getPackage: (id) => axiosInstance.get(`/packages/${id}`),
+	purchasePackage: (id) => axiosInstance.post(`/packages/${id}/purchase`),
+
+	// --- Ratings ---
+	getCourseRatings: (courseId, params) =>
+		axiosInstance.get(`/ratings/course/${courseId}`, { params }),
+	getMyRating: (courseId) => axiosInstance.get(`/ratings/my/${courseId}`),
+	createRating: (data) => axiosInstance.post("/ratings", data),
+	deleteRating: (id) => axiosInstance.delete(`/ratings/${id}`),
+	getRatingsSummary: (courseIds) =>
+		axiosInstance.post("/ratings/summary", { courseIds }),
 };
 
 export default API;

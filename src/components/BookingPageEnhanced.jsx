@@ -10,6 +10,7 @@ import {
 	FaClock,
 	FaMapMarkerAlt,
 	FaInfoCircle,
+	FaSearch,
 } from "react-icons/fa";
 import API from "../services/api";
 import BookingConfirmationModal from "./BookingConfirmationModal";
@@ -37,6 +38,19 @@ const BookingPageEnhanced = () => {
 	const [showConfirmation, setShowConfirmation] = useState(false);
 	const [selectedTeacher, setSelectedTeacher] = useState(null);
 	const [toast, setToast] = useState(null);
+	const [teacherSearch, setTeacherSearch] = useState("");
+
+	// Filter teachers based on search
+	const filteredTeachers = useMemo(() => {
+		if (!teacherSearch.trim()) return teachers;
+		const searchLower = teacherSearch.toLowerCase();
+		return teachers.filter(
+			(teacher) =>
+				teacher.name?.toLowerCase().includes(searchLower) ||
+				teacher.specialization?.toLowerCase().includes(searchLower) ||
+				teacher.title?.toLowerCase().includes(searchLower)
+		);
+	}, [teachers, teacherSearch]);
 
 	useEffect(() => {
 		const fetchTeachers = async () => {
@@ -201,7 +215,7 @@ const BookingPageEnhanced = () => {
 	return (
 		<div className="max-w-3xl mx-auto p-4 md:p-6 bg-white rounded-lg shadow-md border border-neutral">
 			<h1 className="text-2xl md:text-3xl font-bold text-base-content mb-6">
-				<FaCalendarAlt className="inline mr-2 mb-1" />
+				<FaCalendarAlt className="inline mr-2 mb-1 text-primary" />
 				{t("booking.book_teacher_title", { defaultValue: "Багш захиалах" })}
 			</h1>
 
@@ -221,9 +235,9 @@ const BookingPageEnhanced = () => {
 				{/* Teacher Selection */}
 				<div>
 					<Label className="flex items-center mb-3">
-						<FaUserTie className="mr-2 text-gray-500" />
+						<FaUserTie className="mr-2 text-primary" />
 						{t("booking.select_teacher", { defaultValue: "Багш сонгох" })}
-						<span className="text-red-500 ml-1">*</span>
+						<span className="text-secondary ml-1">*</span>
 					</Label>
 					{loadingTeachers ? (
 						<div className="flex items-center justify-center text-gray-500 py-8">
@@ -239,15 +253,45 @@ const BookingPageEnhanced = () => {
 							{t("booking.no_teachers", { defaultValue: "Багш олдсонгүй" })}
 						</div>
 					) : (
-						<div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-							{teachers.map((teacher) => (
-								<TeacherCard
-									key={teacher.id}
-									teacher={teacher}
-									selected={selectedTeacherId === teacher.id.toString()}
-									onClick={handleTeacherSelect}
+						<div>
+							{/* Search Input */}
+							<div className="relative mb-3">
+								<FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-primary/60" />
+								<Input
+									type="text"
+									value={teacherSearch}
+									onChange={(e) => setTeacherSearch(e.target.value)}
+									placeholder={t("booking.search_teacher", { defaultValue: "Багш хайх..." })}
+									className="input input-bordered w-full bg-base-200 rounded pl-10"
 								/>
-							))}
+							</div>
+							{/* Teacher count */}
+							<p className="text-xs text-gray-500 mb-2">
+								{filteredTeachers.length === teachers.length
+									? t("booking.teacher_count", { count: teachers.length, defaultValue: `${teachers.length} багш` })
+									: t("booking.filtered_teacher_count", {
+										filtered: filteredTeachers.length,
+										total: teachers.length,
+										defaultValue: `${filteredTeachers.length} / ${teachers.length} багш`
+									})}
+							</p>
+							{/* Teacher List */}
+							<div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+								{filteredTeachers.length === 0 ? (
+									<div className="p-4 bg-gray-50 rounded-md text-center text-gray-500">
+										{t("booking.no_matching_teachers", { defaultValue: "Тохирох багш олдсонгүй" })}
+									</div>
+								) : (
+									filteredTeachers.map((teacher) => (
+										<TeacherCard
+											key={teacher.id}
+											teacher={teacher}
+											selected={selectedTeacherId === teacher.id.toString()}
+											onClick={handleTeacherSelect}
+										/>
+									))
+								)}
+							</div>
 						</div>
 					)}
 				</div>
@@ -255,9 +299,9 @@ const BookingPageEnhanced = () => {
 				{/* Date Selection */}
 				<div>
 					<Label htmlFor="bookingDate" className="flex items-center mb-2">
-						<FaCalendarAlt className="mr-2 text-gray-500" />
+						<FaCalendarAlt className="mr-2 text-primary" />
 						{t("booking.select_date", { defaultValue: "Огноо сонгох" })}
-						<span className="text-red-500 ml-1">*</span>
+						<span className="text-secondary ml-1">*</span>
 					</Label>
 					<Input
 						id="bookingDate"
@@ -284,12 +328,12 @@ const BookingPageEnhanced = () => {
 				{/* Duration Selection */}
 				<div>
 					<Label htmlFor="duration" className="flex items-center mb-2">
-						<FaClock className="mr-2 text-gray-500" />
+						<FaClock className="mr-2 text-primary" />
 						{t("duration_minutes", {
 							ns: "booking",
 							defaultValue: "Хичээлийн үргэлжлэх хугацаа",
 						})}
-						<span className="text-red-500 ml-1">*</span>
+						<span className="text-secondary ml-1">*</span>
 					</Label>
 					<select
 						id="duration"
@@ -314,11 +358,11 @@ const BookingPageEnhanced = () => {
 				{bookingDate && selectedTeacherId && (
 					<div>
 						<Label className="flex items-center mb-2">
-							<FaClock className="mr-2 text-gray-500" />
+							<FaClock className="mr-2 text-primary" />
 							{t("booking.available_slots", {
 								defaultValue: "Боломжтой цагууд",
 							})}
-							<span className="text-red-500 ml-1">*</span>
+							<span className="text-secondary ml-1">*</span>
 						</Label>
 						{loadingSlots ? (
 							<div className="flex items-center text-gray-500 p-4 border rounded">
@@ -338,8 +382,8 @@ const BookingPageEnhanced = () => {
 											type="button"
 											onClick={() => setSelectedSlot(slotValue)}
 											className={`p-3 border rounded text-sm font-medium transition ${selectedSlot === slotValue
-													? "bg-indigo-600 text-white border-indigo-600"
-													: "bg-white text-gray-700 border-gray-300 hover:border-indigo-400"
+													? "bg-primary text-white border-primary"
+													: "bg-white text-gray-700 border-gray-300 hover:border-primary/60"
 												}`}
 										>
 											{slotValue}
@@ -360,9 +404,9 @@ const BookingPageEnhanced = () => {
 				{/* Location */}
 				<div>
 					<Label htmlFor="location" className="flex items-center mb-2">
-						<FaMapMarkerAlt className="mr-2 text-gray-500" />
+						<FaMapMarkerAlt className="mr-2 text-primary" />
 						{t("booking.location", { defaultValue: "Байршил" })}
-						<span className="text-red-500 ml-1">*</span>
+						<span className="text-secondary ml-1">*</span>
 					</Label>
 					<Input
 						id="location"
@@ -430,11 +474,11 @@ const BookingPageEnhanced = () => {
 
 				{/* Price Estimate */}
 				{estimatedPrice && selectedSlot && (
-					<div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4">
+					<div className="bg-gradient-to-r from-brand-cream to-brand-yellow/20 border-2 border-brand-lime rounded-lg p-4">
 						<div className="flex items-center justify-between">
 							<div>
 								<p className="text-sm text-gray-600 flex items-center gap-1">
-									<FaInfoCircle className="text-green-600" />
+									<FaInfoCircle className="text-secondary" />
 									{t("booking.estimated_price", { defaultValue: "Тооцоолсон үнэ" })}
 								</p>
 								<p className="text-xs text-gray-500 mt-1">
@@ -444,7 +488,7 @@ const BookingPageEnhanced = () => {
 								</p>
 							</div>
 							<div className="text-right">
-								<p className="text-2xl font-bold text-green-600">
+								<p className="text-2xl font-bold text-secondary">
 									₮{estimatedPrice.toLocaleString()}
 								</p>
 								<p className="text-xs text-gray-500">

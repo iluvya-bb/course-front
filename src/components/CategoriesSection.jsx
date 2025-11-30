@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import API, { API_URL } from "../services/api";
 import {
   Code,
@@ -11,7 +12,10 @@ import {
   Film,
   BookOpen,
   Laptop,
+  ChevronRight,
 } from "lucide-react";
+
+const MAX_CATEGORIES_TO_SHOW = 6;
 
 const fadeIn = {
   hidden: { opacity: 0, y: 20 },
@@ -58,22 +62,18 @@ const iconMap = {
 };
 
 const CategoriesSection = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        console.log("Fetching categories...");
         const response = await API.getCategories();
-        console.log("Categories response:", response.data);
         const categoriesData = response.data.data || [];
-        console.log("Categories data:", categoriesData);
         setCategories(categoriesData);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
-        console.error("Error details:", error.response?.data);
         setCategories([]);
       } finally {
         setLoading(false);
@@ -86,6 +86,10 @@ const CategoriesSection = () => {
   if (!loading && categories.length === 0) {
     return null;
   }
+
+  // Limit categories to show
+  const displayedCategories = categories.slice(0, MAX_CATEGORIES_TO_SHOW);
+  const hasMoreCategories = categories.length > MAX_CATEGORIES_TO_SHOW;
 
   return (
     <section id="categories" className="py-24 bg-gradient-to-b from-base-100 to-brand-cream/20 relative overflow-hidden">
@@ -117,65 +121,85 @@ const CategoriesSection = () => {
         </motion.div>
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">Loading categories...</p>
+            <p className="text-gray-500">{t("common.loading") || "Loading..."}</p>
           </div>
         ) : (
-          <motion.div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {categories.map((category, index) => {
-              const categoryName =
-                typeof category.name === "object"
-                  ? category.name[i18n.language] ||
-                  category.name.en ||
-                  category.name.mn
-                  : category.name;
+          <>
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8"
+              variants={stagger}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+            >
+              {displayedCategories.map((category, index) => {
+                const categoryName =
+                  typeof category.name === "object"
+                    ? category.name[i18n.language] ||
+                    category.name.en ||
+                    category.name.mn
+                    : category.name;
 
-              const gradients = [
-                "from-brand-lavender/10 to-brand-coral/10 border-brand-lavender/30 hover:shadow-brand-lavender/30",
-                "from-brand-coral/10 to-brand-yellow/10 border-brand-coral/30 hover:shadow-brand-coral/30",
-                "from-brand-yellow/10 to-brand-lime/10 border-brand-yellow/30 hover:shadow-brand-yellow/30",
-                "from-brand-lime/10 to-brand-lavender/10 border-brand-lime/30 hover:shadow-brand-lime/30",
-              ];
-              const iconColors = ["text-brand-lavender", "text-brand-coral", "text-brand-yellow", "text-brand-lime"];
-              const gradient = gradients[index % gradients.length];
-              const iconColor = iconColors[index % iconColors.length];
+                const gradients = [
+                  "from-brand-lavender/10 to-brand-coral/10 border-brand-lavender/30 hover:shadow-brand-lavender/30",
+                  "from-brand-coral/10 to-brand-yellow/10 border-brand-coral/30 hover:shadow-brand-coral/30",
+                  "from-brand-yellow/10 to-brand-lime/10 border-brand-yellow/30 hover:shadow-brand-yellow/30",
+                  "from-brand-lime/10 to-brand-lavender/10 border-brand-lime/30 hover:shadow-brand-lime/30",
+                ];
+                const iconColors = ["text-brand-lavender", "text-brand-coral", "text-brand-yellow", "text-brand-lime"];
+                const gradient = gradients[index % gradients.length];
+                const iconColor = iconColors[index % iconColors.length];
 
-              return (
-                <motion.div
-                  key={category.id}
-                  className={`bg-gradient-to-br ${gradient} p-6 rounded-2xl text-center border-2 shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer group`}
-                  variants={scaleIn}
-                  whileHover={{ y: -10, scale: 1.05 }}
+                return (
+                  <motion.div
+                    key={category.id}
+                    className={`bg-gradient-to-br ${gradient} p-6 rounded-2xl text-center border-2 shadow-lg hover:shadow-xl transition-all duration-500 cursor-pointer group`}
+                    variants={scaleIn}
+                    whileHover={{ y: -10, scale: 1.05 }}
+                  >
+                    {category.imageUrl ? (
+                      <motion.img
+                        src={`${API_URL}/${category.imageUrl}`}
+                        alt={categoryName}
+                        className="w-10 h-10 mx-auto object-contain group-hover:scale-110 transition-transform duration-300"
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                      />
+                    ) : (
+                      <motion.div
+                        className={`${iconColor} inline-block group-hover:scale-110 transition-transform`}
+                        whileHover={{ rotate: 360 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        {iconMap[category.slug] || iconMap.education}
+                      </motion.div>
+                    )}
+                    <h3 className="mt-4 text-lg font-bold text-base-content group-hover:text-brand-lavender transition-colors">
+                      {categoryName}
+                    </h3>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+
+            {hasMoreCategories && (
+              <motion.div
+                className="text-center mt-10"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+              >
+                <Link
+                  to="/courses"
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold rounded-full hover:shadow-lg hover:shadow-brand-lavender/50 transition-all duration-300 group"
                 >
-                  {category.imageUrl ? (
-                    <motion.img
-                      src={`${API_URL}/${category.imageUrl}`}
-                      alt={categoryName}
-                      className="w-10 h-10 mx-auto object-contain group-hover:scale-110 transition-transform duration-300"
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  ) : (
-                    <motion.div
-                      className={`${iconColor} inline-block group-hover:scale-110 transition-transform`}
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      {iconMap[category.slug] || iconMap.education}
-                    </motion.div>
-                  )}
-                  <h3 className="mt-4 text-lg font-bold text-base-content group-hover:text-brand-lavender transition-colors">
-                    {categoryName}
-                  </h3>
-                </motion.div>
-              );
-            })}
-          </motion.div>
+                  <span>{t("categories.view_all") || "View All Categories"}</span>
+                  <ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
+            )}
+          </>
         )}
       </div>
     </section>

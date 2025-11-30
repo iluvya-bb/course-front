@@ -15,6 +15,7 @@ import {
 	FaInfoCircle,
 	FaBook,
 	FaTag,
+	FaTags,
 	FaCheck,
 	FaBars,
 	FaTimes,
@@ -80,9 +81,19 @@ const CoursePage = () => {
 	const [loadingTests, setLoadingTests] = useState(false);
 	const [showTestUnlocked, setShowTestUnlocked] = useState(false);
 	const [previousProgress, setPreviousProgress] = useState(0);
+	const [inProgressAttempts, setInProgressAttempts] = useState([]);
 
 	// Mobile sidebar state
 	const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+	// Rating state
+	const [myRating, setMyRating] = useState(null);
+	const [ratingValue, setRatingValue] = useState(0);
+	const [ratingReview, setRatingReview] = useState("");
+	const [ratingHover, setRatingHover] = useState(0);
+	const [submittingRating, setSubmittingRating] = useState(false);
+	const [courseRatings, setCourseRatings] = useState([]);
+	const [loadingRatings, setLoadingRatings] = useState(false);
 
 	// --- Effects ---
 
@@ -133,6 +144,14 @@ const CoursePage = () => {
 			try {
 				const response = await API.getCourse(courseId);
 				const fetchedCourse = response.data.data;
+
+				// Filter lessons to only show approved/published ones to students
+				if (fetchedCourse.lessons) {
+					fetchedCourse.lessons = fetchedCourse.lessons.filter(
+						(lesson) => lesson.publicationStatus === 'approved'
+					);
+				}
+
 				setCourse(fetchedCourse);
 
 				const currentUserSubscriptions = await API.getMySubscriptions();
@@ -160,19 +179,24 @@ const CoursePage = () => {
 	}, [courseId]);
 
 	/**
-	 * Effect: Fetch tests for the course
+	 * Effect: Fetch tests for the course and in-progress attempts
 	 */
 	useEffect(() => {
 		const fetchTests = async () => {
 			if (!courseId || !isSubscribed) {
 				setTests([]);
+				setInProgressAttempts([]);
 				return;
 			}
 
 			setLoadingTests(true);
 			try {
-				const response = await API.getTests({ courseId });
-				setTests(response.data.data || []);
+				const [testsRes, attemptsRes] = await Promise.all([
+					API.getTests({ courseId }),
+					API.getMyInProgressAttempts(),
+				]);
+				setTests(testsRes.data.data || []);
+				setInProgressAttempts(attemptsRes.data.data || []);
 			} catch (err) {
 				console.error("Failed to fetch tests:", err);
 			} finally {
@@ -181,6 +205,43 @@ const CoursePage = () => {
 		};
 
 		fetchTests();
+	}, [courseId, isSubscribed]);
+
+	/**
+	 * Effect: Fetch ratings for the course
+	 */
+	useEffect(() => {
+		const fetchRatings = async () => {
+			if (!courseId) return;
+
+			setLoadingRatings(true);
+			try {
+				// Fetch course ratings (reviews)
+				const ratingsResponse = await API.getCourseRatings(courseId, { limit: 5 });
+				setCourseRatings(ratingsResponse.data.data.ratings || []);
+
+				// Fetch user's own rating if subscribed
+				if (isSubscribed) {
+					try {
+						const myRatingResponse = await API.getMyRating(courseId);
+						if (myRatingResponse.data.data) {
+							setMyRating(myRatingResponse.data.data);
+							setRatingValue(myRatingResponse.data.data.rating);
+							setRatingReview(myRatingResponse.data.data.review || "");
+						}
+					} catch (err) {
+						// User hasn't rated yet - that's fine
+						console.log("No existing rating found");
+					}
+				}
+			} catch (err) {
+				console.error("Failed to fetch ratings:", err);
+			} finally {
+				setLoadingRatings(false);
+			}
+		};
+
+		fetchRatings();
 	}, [courseId, isSubscribed]);
 
 	/**
@@ -453,9 +514,12 @@ const CoursePage = () => {
 
 		setPromoCodeValidation((prev) => ({ ...prev, status: "validating" }));
 		try {
+			// Use sale price as base if a sale is active, otherwise use original price
+			const basePriceForPromo = course?.saleInfo?.salePrice ?? course?.price;
+
 			const response = await API.validatePromoCode({
 				code: trimmedCode,
-				basePrice: course?.price,
+				basePrice: basePriceForPromo,
 				courseId: courseId, // Pass courseId to validate scope
 			});
 			const result = response.data.data;
@@ -474,17 +538,66 @@ const CoursePage = () => {
 				codeApplied: null,
 			});
 		}
-	}, [promoCodeInput, course?.price]);
+	}, [promoCodeInput, course?.price, course?.saleInfo?.salePrice]);
 
+	// Calculate the effective price considering sale and promo code
 	const displayPrice = useMemo(() => {
+		// Start with original price
+		let effectivePrice = course?.price;
+
+		// Apply sale price first if available
+		if (course?.saleInfo?.salePrice != null) {
+			effectivePrice = course.saleInfo.salePrice;
+		}
+
+		// Then apply promo code discount on top (if promo validation returned a discounted price)
 		if (
 			promoCodeValidation.status === "valid" &&
 			promoCodeValidation.discountedPrice != null
 		) {
+			// The promo code validation should already calculate based on the sale price
 			return promoCodeValidation.discountedPrice;
 		}
-		return course?.price;
+
+		return effectivePrice;
 	}, [course, promoCodeValidation]);
+
+	// Helper to get in-progress attempt for a test
+	const getInProgressAttempt = useCallback((testId) => {
+		return inProgressAttempts.find((attempt) => attempt.testId === testId);
+	}, [inProgressAttempts]);
+
+	// Handle rating submission
+	const handleSubmitRating = useCallback(async () => {
+		if (ratingValue < 1 || ratingValue > 5) return;
+
+		setSubmittingRating(true);
+		try {
+			const response = await API.createRating({
+				courseId: parseInt(courseId),
+				rating: ratingValue,
+				review: ratingReview.trim() || null,
+			});
+
+			setMyRating(response.data.data.rating);
+
+			// Update course rating info
+			if (course) {
+				setCourse((prev) => ({
+					...prev,
+					ratingInfo: response.data.data.courseStats,
+				}));
+			}
+
+			// Refresh ratings list
+			const ratingsResponse = await API.getCourseRatings(courseId, { limit: 5 });
+			setCourseRatings(ratingsResponse.data.data.ratings || []);
+		} catch (err) {
+			console.error("Failed to submit rating:", err);
+		} finally {
+			setSubmittingRating(false);
+		}
+	}, [courseId, ratingValue, ratingReview, course]);
 
 	// --- Render Loading State ---
 	if (loading) {
@@ -1019,64 +1132,31 @@ const CoursePage = () => {
 										)}
 									</div>
 
-									{/* Tests Section - Only show on last lesson */}
-									{selectedLesson && course.lessons &&
-									 selectedLesson.id === course.lessons[course.lessons.length - 1]?.id && (
-										<div className="mt-12">
-											<div className="flex items-center gap-3 mb-6">
-												<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-coral to-brand-yellow flex items-center justify-center">
-													<FaGraduationCap className="text-white" />
-												</div>
-												<h2 className="text-2xl font-black text-base-content">
-													{t("course.tests", { defaultValue: "Tests & Certificates" })}
-												</h2>
-											</div>
+									{/* Lesson Test Section - Show tests linked to current lesson */}
+									{selectedLesson && (() => {
+										const lessonTests = tests.filter(test => test.lessonId === selectedLesson.id);
+										const isLessonCompleted = selectedLesson.completions?.length > 0;
 
-											{/* Test Unlock Celebration */}
-											<AnimatePresence>
-												{showTestUnlocked && (
-													<motion.div
-														initial={{ opacity: 0, scale: 0.8, y: -20 }}
-														animate={{ opacity: 1, scale: 1, y: 0 }}
-														exit={{ opacity: 0, scale: 0.8, y: -20 }}
-														className="mb-6 p-6 bg-gradient-to-r from-green-100 via-yellow-100 to-green-100 border-2 border-green-400 rounded-2xl flex items-center gap-4 shadow-2xl"
-													>
-														<motion.div
-															animate={{
-																rotate: [0, -10, 10, -10, 0],
-																scale: [1, 1.2, 1]
-															}}
-															transition={{
-																duration: 0.5,
-																repeat: 3,
-																ease: "easeInOut"
-															}}
-															className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-yellow to-brand-coral flex items-center justify-center flex-shrink-0"
-														>
-															<FaTrophy className="text-white text-3xl" />
-														</motion.div>
-														<div className="flex-1">
-															<p className="text-green-800 font-black text-xl mb-1">
-																🎉 {t("course.tests_unlocked_title", { defaultValue: "Tests Unlocked!" })}
-															</p>
-															<p className="text-green-700 font-medium">
-																{t("course.tests_unlocked_message", { defaultValue: "Congratulations! You've completed all lessons. You can now take the tests!" })}
-															</p>
-														</div>
-														<FaUnlock className="text-green-600 text-2xl flex-shrink-0" />
-													</motion.div>
-												)}
-											</AnimatePresence>
+										if (lessonTests.length === 0) return null;
 
-											{loadingTests ? (
-												<div className="flex justify-center py-8">
-													<FaSpinner className="animate-spin text-brand-lavender text-2xl" />
+										return (
+											<div className="mt-12">
+												<div className="flex items-center gap-3 mb-6">
+													<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-coral to-brand-yellow flex items-center justify-center">
+														<FaGraduationCap className="text-white" />
+													</div>
+													<h2 className="text-2xl font-black text-base-content">
+														{t("course.lesson_test", { defaultValue: "Lesson Test" })}
+													</h2>
 												</div>
-											) : course.progress === 100 ? (
-												// Tests are unlocked - show available tests
-												tests.length > 0 ? (
+
+												{loadingTests ? (
+													<div className="flex justify-center py-8">
+														<FaSpinner className="animate-spin text-brand-lavender text-2xl" />
+													</div>
+												) : isLessonCompleted ? (
 													<div className="grid grid-cols-1 gap-4">
-														{tests.map((test, index) => (
+														{lessonTests.map((test, index) => (
 															<motion.div
 																key={test.id}
 																initial={{ opacity: 0, y: 20 }}
@@ -1086,9 +1166,16 @@ const CoursePage = () => {
 															>
 																<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
 																	<div className="flex-1">
-																		<h3 className="text-xl font-bold text-base-content mb-2">
-																			{test.title}
-																		</h3>
+																		<div className="flex items-center gap-2 mb-2">
+																			<h3 className="text-xl font-bold text-base-content">
+																				{test.title}
+																			</h3>
+																			{test.issuesCertificate && (
+																				<span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-brand-yellow to-brand-coral text-white rounded-full">
+																					{t("course.certificate_test", { defaultValue: "Certificate" })}
+																				</span>
+																			)}
+																		</div>
 																		{test.description && (
 																			<p className="text-base-content/70 text-sm mb-3">
 																				{test.description}
@@ -1098,7 +1185,7 @@ const CoursePage = () => {
 																			<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
 																				<FaBook className="text-brand-lavender" />
 																				<span className="font-medium">
-																					{test.questions?.length || 0} {t("course.questions", { defaultValue: "questions" })}
+																					{test.numberOfQuestions || test.questions?.length || 0} {t("course.questions", { defaultValue: "questions" })}
 																				</span>
 																			</div>
 																			<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
@@ -1117,27 +1204,188 @@ const CoursePage = () => {
 																			)}
 																		</div>
 																	</div>
-																	<Button
-																		onClick={() => window.location.href = `/tests/${test.id}`}
-																		className="bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
-																	>
-																		<FaGraduationCap className="mr-2" />
-																		{t("course.start_test", { defaultValue: "Start Test" })}
-																	</Button>
+																	{(() => {
+																		const inProgressAttempt = getInProgressAttempt(test.id);
+																		return inProgressAttempt ? (
+																			<Button
+																				onClick={() => window.location.href = `/tests/${test.id}`}
+																				className="bg-gradient-to-r from-brand-yellow to-brand-coral text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all whitespace-nowrap animate-pulse"
+																			>
+																				<FaPlay className="mr-2" />
+																				{t("course.continue_test", { defaultValue: "Continue Test" })}
+																			</Button>
+																		) : (
+																			<Button
+																				onClick={() => window.location.href = `/tests/${test.id}`}
+																				className="bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+																			>
+																				<FaGraduationCap className="mr-2" />
+																				{t("course.start_test", { defaultValue: "Start Test" })}
+																			</Button>
+																		);
+																	})()}
 																</div>
 															</motion.div>
 														))}
 													</div>
 												) : (
-													<div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl border-2 border-gray-200">
-														<FaGraduationCap className="text-gray-300 text-5xl mx-auto mb-4" />
-														<p className="text-base-content/70 font-medium">
-															{t("course.no_tests", { defaultValue: "No tests available for this course yet" })}
+													<motion.div
+														initial={{ opacity: 0, y: 20 }}
+														animate={{ opacity: 1, y: 0 }}
+														className="bg-gradient-to-br from-gray-100 to-gray-200 p-6 rounded-3xl border-2 border-gray-300 text-center"
+													>
+														<div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
+															<FaLock className="text-white text-2xl" />
+														</div>
+														<h3 className="text-xl font-black text-gray-700 mb-2">
+															{t("course.lesson_test_locked_title", { defaultValue: "Test Locked" })}
+														</h3>
+														<p className="text-gray-600 font-medium max-w-md mx-auto">
+															{t("course.lesson_test_locked_message", {
+																defaultValue: "Complete this lesson to unlock the test"
+															})}
 														</p>
+													</motion.div>
+												)}
+											</div>
+										);
+									})()}
+
+									{/* Course-Level Tests Section - Only show on last lesson when all lessons complete */}
+									{selectedLesson && course.lessons &&
+									 selectedLesson.id === course.lessons[course.lessons.length - 1]?.id && (() => {
+										const courseTests = tests.filter(test => !test.lessonId);
+
+										if (courseTests.length === 0) return null;
+
+										return (
+											<div className="mt-12">
+												<div className="flex items-center gap-3 mb-6">
+													<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-coral to-brand-yellow flex items-center justify-center">
+														<FaGraduationCap className="text-white" />
 													</div>
-												)
+													<h2 className="text-2xl font-black text-base-content">
+														{t("course.final_tests", { defaultValue: "Final Tests & Certificates" })}
+													</h2>
+												</div>
+
+												{/* Test Unlock Celebration */}
+												<AnimatePresence>
+													{showTestUnlocked && (
+														<motion.div
+															initial={{ opacity: 0, scale: 0.8, y: -20 }}
+															animate={{ opacity: 1, scale: 1, y: 0 }}
+															exit={{ opacity: 0, scale: 0.8, y: -20 }}
+															className="mb-6 p-6 bg-gradient-to-r from-green-100 via-yellow-100 to-green-100 border-2 border-green-400 rounded-2xl flex items-center gap-4 shadow-2xl"
+														>
+															<motion.div
+																animate={{
+																	rotate: [0, -10, 10, -10, 0],
+																	scale: [1, 1.2, 1]
+																}}
+																transition={{
+																	duration: 0.5,
+																	repeat: 3,
+																	ease: "easeInOut"
+																}}
+																className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-yellow to-brand-coral flex items-center justify-center flex-shrink-0"
+															>
+																<FaTrophy className="text-white text-3xl" />
+															</motion.div>
+															<div className="flex-1">
+																<p className="text-green-800 font-black text-xl mb-1">
+																	🎉 {t("course.tests_unlocked_title", { defaultValue: "Final Tests Unlocked!" })}
+																</p>
+																<p className="text-green-700 font-medium">
+																	{t("course.tests_unlocked_message", { defaultValue: "Congratulations! You've completed all lessons. You can now take the final tests!" })}
+																</p>
+															</div>
+															<FaUnlock className="text-green-600 text-2xl flex-shrink-0" />
+														</motion.div>
+													)}
+												</AnimatePresence>
+
+												{loadingTests ? (
+													<div className="flex justify-center py-8">
+														<FaSpinner className="animate-spin text-brand-lavender text-2xl" />
+													</div>
+												) : course.progress === 100 ? (
+													// Tests are unlocked - show available course-level tests
+													<div className="grid grid-cols-1 gap-4">
+														{courseTests.map((test, index) => (
+															<motion.div
+																key={test.id}
+																initial={{ opacity: 0, y: 20 }}
+																animate={{ opacity: 1, y: 0 }}
+																transition={{ delay: index * 0.1 }}
+																className="bg-gradient-to-br from-brand-lavender/10 to-brand-coral/10 p-6 rounded-3xl border-2 border-brand-lavender/30 shadow-lg hover:shadow-xl transition-all"
+															>
+																<div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+																	<div className="flex-1">
+																		<div className="flex items-center gap-2 mb-2">
+																			<h3 className="text-xl font-bold text-base-content">
+																				{test.title}
+																			</h3>
+																			{test.issuesCertificate && (
+																				<span className="px-2 py-1 text-xs font-bold bg-gradient-to-r from-brand-yellow to-brand-coral text-white rounded-full">
+																					{t("course.certificate_test", { defaultValue: "Certificate" })}
+																				</span>
+																			)}
+																		</div>
+																		{test.description && (
+																			<p className="text-base-content/70 text-sm mb-3">
+																				{test.description}
+																			</p>
+																		)}
+																		<div className="flex flex-wrap gap-3 text-sm">
+																			<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
+																				<FaBook className="text-brand-lavender" />
+																				<span className="font-medium">
+																					{test.numberOfQuestions || test.questions?.length || 0} {t("course.questions", { defaultValue: "questions" })}
+																				</span>
+																			</div>
+																			<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
+																				<FaStar className="text-brand-coral" />
+																				<span className="font-medium">
+																					{test.passingScore}% {t("course.passing_score", { defaultValue: "to pass" })}
+																				</span>
+																			</div>
+																			{test.timeLimit && (
+																				<div className="flex items-center gap-2 bg-white/50 px-3 py-1 rounded-full">
+																					<FaClock className="text-brand-yellow" />
+																					<span className="font-medium">
+																						{test.timeLimit} {t("course.minutes", { defaultValue: "min" })}
+																					</span>
+																				</div>
+																			)}
+																		</div>
+																	</div>
+																	{(() => {
+																		const inProgressAttempt = getInProgressAttempt(test.id);
+																		return inProgressAttempt ? (
+																			<Button
+																				onClick={() => window.location.href = `/tests/${test.id}`}
+																				className="bg-gradient-to-r from-brand-yellow to-brand-coral text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all whitespace-nowrap animate-pulse"
+																			>
+																				<FaPlay className="mr-2" />
+																				{t("course.continue_test", { defaultValue: "Continue Test" })}
+																			</Button>
+																		) : (
+																			<Button
+																				onClick={() => window.location.href = `/tests/${test.id}`}
+																				className="bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all whitespace-nowrap"
+																			>
+																				<FaGraduationCap className="mr-2" />
+																				{t("course.start_test", { defaultValue: "Start Test" })}
+																			</Button>
+																		);
+																	})()}
+																</div>
+															</motion.div>
+														))}
+													</div>
 											) : (
-												// Tests are locked - show locked state
+												// Final tests are locked - show locked state
 												<motion.div
 													initial={{ opacity: 0, y: 20 }}
 													animate={{ opacity: 1, y: 0 }}
@@ -1157,11 +1405,11 @@ const CoursePage = () => {
 														<FaLock className="text-white text-4xl" />
 													</motion.div>
 													<h3 className="text-2xl font-black text-gray-700 mb-3">
-														{t("course.tests_locked_title", { defaultValue: "Tests Locked" })}
+														{t("course.final_tests_locked_title", { defaultValue: "Final Tests Locked" })}
 													</h3>
 													<p className="text-gray-600 font-medium mb-6 max-w-md mx-auto">
-														{t("course.tests_locked_message", {
-															defaultValue: "Complete all lessons to unlock the tests. Keep going, you're doing great!"
+														{t("course.final_tests_locked_message", {
+															defaultValue: "Complete all lessons to unlock the final tests. Keep going, you're doing great!"
 														})}
 													</p>
 													<div className="inline-flex items-center gap-3 px-6 py-3 bg-white rounded-full border-2 border-gray-300">
@@ -1181,8 +1429,9 @@ const CoursePage = () => {
 													</div>
 												</motion.div>
 											)}
-										</div>
-									)}
+											</div>
+										);
+									})()}
 								</motion.div>
 							) : (
 								// Shown if subscribed but no lesson is selected
@@ -1201,6 +1450,200 @@ const CoursePage = () => {
 									</p>
 								</div>
 							)}
+
+							{/* Rating Section - Always visible for subscribed users */}
+							<div className="mt-12 bg-white/90 backdrop-blur-sm rounded-3xl border-2 border-brand-lavender/20 p-6 md:p-8 shadow-xl">
+								<div className="flex items-center gap-3 mb-6">
+									<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-yellow to-brand-coral flex items-center justify-center">
+										<FaStar className="text-white" />
+									</div>
+									<h2 className="text-2xl font-black text-base-content">
+										{t("course.ratings_reviews", { defaultValue: "Ratings & Reviews" })}
+									</h2>
+								</div>
+
+								{/* Rating Stats */}
+								{course.ratingInfo && (
+									<div className="mb-8 p-4 bg-gradient-to-r from-brand-yellow/10 to-brand-coral/10 rounded-2xl border-2 border-brand-yellow/20">
+										<div className="flex flex-col md:flex-row items-center gap-6">
+											<div className="text-center">
+												<div className="text-5xl font-black bg-gradient-to-r from-brand-yellow to-brand-coral bg-clip-text text-transparent">
+													{course.ratingInfo.averageRating || "-"}
+												</div>
+												<div className="flex items-center justify-center gap-1 mt-2">
+													{[1, 2, 3, 4, 5].map((star) => (
+														<FaStar
+															key={star}
+															className={`${
+																star <= Math.round(parseFloat(course.ratingInfo.averageRating || 0))
+																	? "text-brand-yellow"
+																	: "text-gray-300"
+															}`}
+														/>
+													))}
+												</div>
+												<div className="text-sm text-base-content/60 mt-1">
+													{course.ratingInfo.totalRatings} {t("course.reviews", { defaultValue: "reviews" })}
+												</div>
+											</div>
+
+											{/* Rating Distribution */}
+											{course.ratingInfo.distribution && (
+												<div className="flex-1 space-y-2">
+													{[5, 4, 3, 2, 1].map((stars) => {
+														const count = course.ratingInfo.distribution[stars] || 0;
+														const percentage =
+															course.ratingInfo.totalRatings > 0
+																? (count / course.ratingInfo.totalRatings) * 100
+																: 0;
+														return (
+															<div key={stars} className="flex items-center gap-2">
+																<span className="text-sm font-medium w-3">{stars}</span>
+																<FaStar className="text-brand-yellow text-xs" />
+																<div className="flex-1 bg-gray-200 rounded-full h-2 overflow-hidden">
+																	<div
+																		className="bg-gradient-to-r from-brand-yellow to-brand-coral h-2 rounded-full transition-all duration-500"
+																		style={{ width: `${percentage}%` }}
+																	></div>
+																</div>
+																<span className="text-xs text-base-content/60 w-8">{count}</span>
+															</div>
+														);
+													})}
+												</div>
+											)}
+										</div>
+									</div>
+								)}
+
+								{/* User's Rating Form */}
+								<div className="mb-8 p-6 bg-gradient-to-r from-brand-lavender/10 to-brand-coral/10 rounded-2xl border-2 border-brand-lavender/20">
+									<h3 className="text-lg font-bold text-base-content mb-4">
+										{myRating
+											? t("course.update_rating", { defaultValue: "Update Your Rating" })
+											: t("course.leave_rating", { defaultValue: "Leave a Rating" })}
+									</h3>
+
+									{/* Star Rating Input */}
+									<div className="flex items-center gap-2 mb-4">
+										{[1, 2, 3, 4, 5].map((star) => (
+											<button
+												key={star}
+												type="button"
+												onClick={() => setRatingValue(star)}
+												onMouseEnter={() => setRatingHover(star)}
+												onMouseLeave={() => setRatingHover(0)}
+												className="text-3xl transition-transform hover:scale-110"
+											>
+												<FaStar
+													className={`${
+														star <= (ratingHover || ratingValue)
+															? "text-brand-yellow"
+															: "text-gray-300"
+													} transition-colors`}
+												/>
+											</button>
+										))}
+										<span className="ml-2 text-sm text-base-content/60">
+											{ratingValue > 0 && (
+												<>
+													{ratingValue === 1 && t("course.rating_1", { defaultValue: "Poor" })}
+													{ratingValue === 2 && t("course.rating_2", { defaultValue: "Fair" })}
+													{ratingValue === 3 && t("course.rating_3", { defaultValue: "Good" })}
+													{ratingValue === 4 && t("course.rating_4", { defaultValue: "Very Good" })}
+													{ratingValue === 5 && t("course.rating_5", { defaultValue: "Excellent" })}
+												</>
+											)}
+										</span>
+									</div>
+
+									{/* Review Text */}
+									<textarea
+										placeholder={t("course.review_placeholder", {
+											defaultValue: "Share your experience with this course (optional)...",
+										})}
+										value={ratingReview}
+										onChange={(e) => setRatingReview(e.target.value)}
+										className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-lavender focus:border-brand-lavender resize-none"
+										rows={3}
+									/>
+
+									{/* Submit Button */}
+									<Button
+										onClick={handleSubmitRating}
+										disabled={ratingValue < 1 || submittingRating}
+										className="mt-4 bg-gradient-to-r from-brand-lavender to-brand-coral text-white font-bold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+									>
+										{submittingRating ? (
+											<>
+												<FaSpinner className="animate-spin mr-2" />
+												{t("course.submitting", { defaultValue: "Submitting..." })}
+											</>
+										) : myRating ? (
+											t("course.update_review", { defaultValue: "Update Review" })
+										) : (
+											t("course.submit_review", { defaultValue: "Submit Review" })
+										)}
+									</Button>
+								</div>
+
+								{/* Reviews List */}
+								{loadingRatings ? (
+									<div className="flex justify-center py-8">
+										<FaSpinner className="animate-spin text-brand-lavender text-2xl" />
+									</div>
+								) : courseRatings.length > 0 ? (
+									<div className="space-y-4">
+										<h3 className="text-lg font-bold text-base-content mb-4">
+											{t("course.recent_reviews", { defaultValue: "Recent Reviews" })}
+										</h3>
+										{courseRatings.map((rating) => (
+											<motion.div
+												key={rating.id}
+												initial={{ opacity: 0, y: 10 }}
+												animate={{ opacity: 1, y: 0 }}
+												className="p-4 bg-white rounded-2xl border-2 border-gray-100 shadow-sm"
+											>
+												<div className="flex items-start gap-4">
+													<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-lavender to-brand-coral flex items-center justify-center text-white font-bold">
+														{rating.user?.name?.charAt(0)?.toUpperCase() || "U"}
+													</div>
+													<div className="flex-1">
+														<div className="flex items-center gap-2 mb-1">
+															<span className="font-bold text-base-content">
+																{rating.user?.name || t("course.anonymous", { defaultValue: "Anonymous" })}
+															</span>
+															<div className="flex items-center">
+																{[1, 2, 3, 4, 5].map((star) => (
+																	<FaStar
+																		key={star}
+																		className={`text-xs ${
+																			star <= rating.rating
+																				? "text-brand-yellow"
+																				: "text-gray-300"
+																		}`}
+																	/>
+																))}
+															</div>
+														</div>
+														{rating.review && (
+															<p className="text-base-content/70 text-sm">{rating.review}</p>
+														)}
+														<p className="text-xs text-base-content/40 mt-2">
+															{new Date(rating.createdAt).toLocaleDateString()}
+														</p>
+													</div>
+												</div>
+											</motion.div>
+										))}
+									</div>
+								) : (
+									<div className="text-center py-8 text-base-content/60">
+										<FaStar className="text-4xl text-gray-300 mx-auto mb-3" />
+										<p>{t("course.no_reviews_yet", { defaultValue: "No reviews yet. Be the first to review!" })}</p>
+									</div>
+								)}
+							</div>
 						</main>
 					</div>
 				) : (
@@ -1292,10 +1735,12 @@ const CoursePage = () => {
 									<div className="bg-gradient-to-br from-brand-coral/10 to-brand-lavender/10 p-4 rounded-2xl border-2 border-brand-coral/20 text-center">
 										<FaStar className="text-brand-coral text-2xl mx-auto mb-2" />
 										<div className="text-2xl font-black text-base-content">
-											5.0
+											{course.ratingInfo?.averageRating || "-"}
 										</div>
 										<div className="text-xs text-base-content/60 font-medium">
-											Rating
+											{course.ratingInfo?.totalRatings > 0
+												? `${course.ratingInfo.totalRatings} ${t("course.reviews", { defaultValue: "reviews" })}`
+												: t("course.no_reviews", { defaultValue: "No reviews yet" })}
 										</div>
 									</div>
 								</div>
@@ -1374,20 +1819,59 @@ const CoursePage = () => {
 									</div>
 								)}
 
+								{/* Sale Badge */}
+								{course.saleInfo && (
+									<motion.div
+										initial={{ opacity: 0, scale: 0.9 }}
+										animate={{ opacity: 1, scale: 1 }}
+										className="mb-4 flex items-center gap-3"
+									>
+										<span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-sm font-bold text-white shadow-lg animate-pulse">
+											<FaTags />
+											{course.saleInfo.badgeText || `${course.saleInfo.discountValue}${course.saleInfo.discountType === 'percentage' ? '%' : '₮'} OFF`}
+										</span>
+										{course.saleInfo.saleTitle && (
+											<span className="text-sm font-medium text-base-content/70">
+												{course.saleInfo.saleTitle}
+											</span>
+										)}
+									</motion.div>
+								)}
+
 								{/* Price and Subscribe Button */}
 								<div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-6 bg-gradient-to-r from-brand-lavender/10 via-brand-coral/10 to-brand-yellow/10 rounded-2xl border-2 border-brand-lavender/20">
 									<div>
 										{course.price != null && course.price > 0 ? (
-											<>
-												{promoCodeValidation.status === "valid" && (
-													<span className="text-lg line-through text-base-content/50 mr-3">
-														₮{course.price.toLocaleString()}
+											<div className="flex flex-col">
+												<div className="flex items-center gap-3">
+													{/* Show original price struck through if sale or promo applied */}
+													{(course.saleInfo || promoCodeValidation.status === "valid") && (
+														<span className="text-xl line-through text-base-content/50">
+															₮{course.price.toLocaleString()}
+														</span>
+													)}
+													{/* Show sale price struck through if promo applied on top of sale */}
+													{course.saleInfo && promoCodeValidation.status === "valid" && (
+														<span className="text-lg line-through text-base-content/50">
+															₮{course.saleInfo.salePrice.toLocaleString()}
+														</span>
+													)}
+													{/* Display the final price */}
+													<span className={`text-4xl font-black bg-clip-text text-transparent ${
+														course.saleInfo
+															? 'bg-gradient-to-r from-red-500 to-pink-500'
+															: 'bg-gradient-to-r from-brand-lavender to-brand-coral'
+													}`}>
+														₮{displayPrice?.toLocaleString()}
 													</span>
+												</div>
+												{/* Show savings */}
+												{course.saleInfo && (
+													<div className="text-sm text-green-600 font-semibold mt-2">
+														{t("dashboard.save", { defaultValue: "Save" })} ₮{course.saleInfo.discount.toLocaleString()}!
+													</div>
 												)}
-												<span className="text-4xl font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
-													₮{displayPrice?.toLocaleString()}
-												</span>
-											</>
+											</div>
 										) : (
 											<span className="text-4xl font-black bg-gradient-to-r from-green-500 to-green-600 bg-clip-text text-transparent">
 												{t("courses.free", { defaultValue: "FREE" })}
@@ -1403,6 +1887,72 @@ const CoursePage = () => {
 								</div>
 							</div>
 						</motion.div>
+
+						{/* Reviews Section for Non-Subscribed Users */}
+						{courseRatings.length > 0 && (
+							<motion.div
+								initial={{ opacity: 0, y: 30 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ delay: 0.2 }}
+								className="mt-8 bg-white/90 backdrop-blur-sm rounded-3xl border-2 border-brand-lavender/20 p-6 md:p-8 shadow-xl"
+							>
+								<div className="flex items-center justify-between mb-6">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-yellow to-brand-coral flex items-center justify-center">
+											<FaStar className="text-white" />
+										</div>
+										<h2 className="text-2xl font-black text-base-content">
+											{t("course.student_reviews", { defaultValue: "Student Reviews" })}
+										</h2>
+									</div>
+									{course.ratingInfo?.averageRating && (
+										<div className="flex items-center gap-2">
+											<span className="text-2xl font-black bg-gradient-to-r from-brand-yellow to-brand-coral bg-clip-text text-transparent">
+												{course.ratingInfo.averageRating}
+											</span>
+											<FaStar className="text-brand-yellow" />
+										</div>
+									)}
+								</div>
+
+								<div className="space-y-4">
+									{courseRatings.slice(0, 3).map((rating) => (
+										<div
+											key={rating.id}
+											className="p-4 bg-white rounded-2xl border-2 border-gray-100 shadow-sm"
+										>
+											<div className="flex items-start gap-4">
+												<div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-lavender to-brand-coral flex items-center justify-center text-white font-bold">
+													{rating.user?.name?.charAt(0)?.toUpperCase() || "U"}
+												</div>
+												<div className="flex-1">
+													<div className="flex items-center gap-2 mb-1">
+														<span className="font-bold text-base-content">
+															{rating.user?.name || t("course.anonymous", { defaultValue: "Anonymous" })}
+														</span>
+														<div className="flex items-center">
+															{[1, 2, 3, 4, 5].map((star) => (
+																<FaStar
+																	key={star}
+																	className={`text-xs ${
+																		star <= rating.rating
+																			? "text-brand-yellow"
+																			: "text-gray-300"
+																	}`}
+																/>
+															))}
+														</div>
+													</div>
+													{rating.review && (
+														<p className="text-base-content/70 text-sm">{rating.review}</p>
+													)}
+												</div>
+											</div>
+										</div>
+									))}
+								</div>
+							</motion.div>
+						)}
 					</div>
 				)}
 			</div>

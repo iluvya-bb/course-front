@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "./ui/button";
 import CourseCard from "./dashboard/CourseCard";
 import FilterBar from "./dashboard/FilterBar";
+import FilterCards from "./dashboard/FilterCards";
 import { motion, AnimatePresence } from "framer-motion";
 import SubscriptionModal from "./dashboard/SubscriptionModal";
 import API from "../services/api";
@@ -12,14 +13,19 @@ import {
 	FaBook,
 	FaChalkboardTeacher,
 	FaRocket,
+	FaPlay,
+	FaClock,
 } from "react-icons/fa";
 
 const DashboardPage = () => {
 	const { t } = useTranslation(["translation", "course"]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [selectedCategory, setSelectedCategory] = useState("");
+	const [selectedSubject, setSelectedSubject] = useState("");
+	const [selectedTeacher, setSelectedTeacher] = useState("");
 	const [subscribedFilter, setSubscribedFilter] = useState("all");
 	const [courses, setCourses] = useState([]);
+	const [inProgressAttempts, setInProgressAttempts] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [selectedCourse, setSelectedCourse] = useState(null);
@@ -49,6 +55,15 @@ const DashboardPage = () => {
 				}));
 
 				setCourses(coursesWithSubStatus);
+
+				// Fetch in-progress test attempts
+				try {
+					const inProgressResponse = await API.getMyInProgressAttempts();
+					setInProgressAttempts(inProgressResponse.data.data || []);
+				} catch (err) {
+					console.log("No in-progress attempts or error fetching:", err);
+					setInProgressAttempts([]);
+				}
 			} catch (error) {
 				console.error("Failed to fetch courses:", error);
 				setError(
@@ -115,13 +130,23 @@ const DashboardPage = () => {
 				return course.categoryId?.toString() === selectedCategory.toString();
 			})
 			.filter((course) => {
+				// Filter by subject
+				if (selectedSubject === "") return true;
+				return course.subjectId?.toString() === selectedSubject.toString();
+			})
+			.filter((course) => {
+				// Filter by teacher
+				if (selectedTeacher === "") return true;
+				return course.teacherId?.toString() === selectedTeacher.toString();
+			})
+			.filter((course) => {
 				return (
 					subscribedFilter === "all" ||
 					(subscribedFilter === "subscribed" && course.subscribed) ||
 					(subscribedFilter === "not_subscribed" && !course.subscribed)
 				);
 			});
-	}, [searchQuery, selectedCategory, subscribedFilter, courses]);
+	}, [searchQuery, selectedCategory, selectedSubject, selectedTeacher, subscribedFilter, courses]);
 
 	// Split courses into subscribed and unsubscribed
 	const subscribedCourses = useMemo(() => {
@@ -209,6 +234,51 @@ const DashboardPage = () => {
 
 			{/* Content */}
 			<div className="relative z-10 px-4 sm:px-6 py-8">
+				{/* In-Progress Tests Warning Banner */}
+				{inProgressAttempts.length > 0 && (
+					<motion.div
+						initial={{ opacity: 0, y: -20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ duration: 0.5 }}
+						className="mb-6"
+					>
+						{inProgressAttempts.map((attempt) => (
+							<div
+								key={attempt.id}
+								className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-4 mb-3 shadow-lg"
+							>
+								<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+									<div className="flex items-center gap-3 text-white">
+										<div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+											<FaClock className="text-xl" />
+										</div>
+										<div>
+											<p className="font-bold text-lg">
+												{t("dashboard.unfinished_test", {
+													defaultValue: "Дуусгаагүй шалгалт байна!",
+												})}
+											</p>
+											<p className="text-white/90 text-sm">
+												{attempt.test?.title} - {attempt.test?.course?.title}
+											</p>
+										</div>
+									</div>
+									<Link
+										to={`/tests/${attempt.testId}?attemptId=${attempt.id}`}
+									>
+										<Button className="bg-white text-orange-600 font-bold px-6 py-2 rounded-full hover:bg-orange-50 shadow-md">
+											<FaPlay className="mr-2" />
+											{t("dashboard.continue_test", {
+												defaultValue: "Үргэлжлүүлэх",
+											})}
+										</Button>
+									</Link>
+								</div>
+							</div>
+						))}
+					</motion.div>
+				)}
+
 				{/* Hero Welcome Section */}
 				<motion.div
 					initial={{ opacity: 0, y: 30 }}
@@ -344,11 +414,25 @@ const DashboardPage = () => {
 					</div>
 				</motion.div>
 
-				{/* Filter Bar */}
+				{/* Filter Cards (Subjects & Teachers) */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
 					animate={{ opacity: 1, y: 0 }}
 					transition={{ delay: 0.7 }}
+				>
+					<FilterCards
+						onSubjectChange={setSelectedSubject}
+						onTeacherChange={setSelectedTeacher}
+						selectedSubject={selectedSubject}
+						selectedTeacher={selectedTeacher}
+					/>
+				</motion.div>
+
+				{/* Filter Bar (Search & Category) */}
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ delay: 0.8 }}
 				>
 					<FilterBar
 						onSearch={setSearchQuery}
@@ -361,7 +445,7 @@ const DashboardPage = () => {
 				<motion.div
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
-					transition={{ delay: 0.8 }}
+					transition={{ delay: 0.9 }}
 					className="mt-8 space-y-12"
 				>
 					{/* Subscribed Courses Section */}

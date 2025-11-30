@@ -142,13 +142,13 @@ const AvailabilityScheduler = () => {
         setLoading(true);
         await API.createMyTeacherProfile({
           name: user?.username,
-          bio: `Teacher at our platform`,
+          bio: t("teacher.availability.default_bio"),
         });
-        alert(t("teacher.availability.profile_created", "Teacher profile created successfully! Please refresh the page."));
+        alert(t("teacher.availability.profile_created"));
         window.location.reload();
       } catch (error) {
         console.error("Failed to create teacher profile:", error);
-        alert(error.response?.data?.error || t("teacher.availability.profile_failed", "Failed to create teacher profile"));
+        alert(error.response?.data?.error || t("teacher.availability.profile_failed"));
       } finally {
         setLoading(false);
       }
@@ -158,16 +158,16 @@ const AvailabilityScheduler = () => {
       <div className="text-center py-12">
         <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-8 max-w-2xl mx-auto">
           <p className="text-yellow-800 text-lg font-semibold mb-4">
-            {t("teacher.availability.no_profile", "Teacher profile not found")}
+            {t("teacher.availability.no_profile")}
           </p>
           <div className="text-left text-yellow-700 space-y-2">
             <p>
               {user?.role === "admin"
-                ? t("teacher.availability.admin_note", "As an admin, you need a teacher profile to manage availability.")
-                : t("teacher.availability.teacher_note", "Your teacher application may not have been approved yet. Please check your application status.")}
+                ? t("teacher.availability.admin_note")
+                : t("teacher.availability.teacher_note")}
             </p>
             <p className="text-sm mt-4">
-              <strong>Current role:</strong> {user?.role || "unknown"}
+              <strong>{t("teacher.availability.current_role")}:</strong> {user?.role || t("teacher.availability.unknown_role")}
             </p>
           </div>
           {(user?.role === "teacher" || user?.role === "admin") && (
@@ -176,7 +176,7 @@ const AvailabilityScheduler = () => {
               disabled={loading}
               className="mt-6 px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50"
             >
-              {loading ? t("teacher.availability.creating", "Creating...") : t("teacher.availability.create_profile", "Create Teacher Profile")}
+              {loading ? t("teacher.availability.creating") : t("teacher.availability.create_profile")}
             </button>
           )}
         </div>
@@ -412,7 +412,7 @@ const AvailabilityScheduler = () => {
             className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-bold transition-all"
           >
             <FaBan />
-            <span>{t("teacher.availability.block_button")}</span>
+            <span>{t("teacher.availability.block")}</span>
           </button>
         </div>
 

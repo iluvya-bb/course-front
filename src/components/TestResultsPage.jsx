@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
 import API from "../services/api";
 import { FaCheckCircle, FaTimesCircle, FaClock, FaTrophy } from "react-icons/fa";
 
@@ -30,7 +31,7 @@ function TestResultsPage() {
 			}
 		} catch (err) {
 			console.error("Failed to fetch results:", err);
-			setError(err.response?.data?.error || t("test.results.failed_to_load"));
+			setError(err.response?.data?.error || t("test.results.error_load"));
 		} finally {
 			setLoading(false);
 		}
@@ -54,8 +55,10 @@ function TestResultsPage() {
 		);
 	}
 
-	const isPassed = attempt.score >= attempt.passingScore;
+	const score = parseFloat(attempt.score) || 0;
+	const isPassed = score >= attempt.passingScore;
 	const isGraded = attempt.status === "graded";
+	const isCertificateTest = attempt.test?.issuesCertificate;
 
 	return (
 		<div className="max-w-4xl mx-auto p-8">
@@ -72,14 +75,14 @@ function TestResultsPage() {
 						) : (
 							<div>
 								<FaTimesCircle className="text-6xl text-red-500 mx-auto mb-4" />
-								<h1 className="text-3xl font-bold text-red-600 mb-2">{t("test.results.not_quite_there")}</h1>
-								<p className="text-gray-600">{t("test.results.keep_studying")}</p>
+								<h1 className="text-3xl font-bold text-red-600 mb-2">{t("test.results.not_passed")}</h1>
+								<p className="text-gray-600">{t("test.results.keep_trying")}</p>
 							</div>
 						)
 					) : (
 						<div>
 							<FaClock className="text-6xl text-blue-500 mx-auto mb-4" />
-							<h1 className="text-3xl font-bold text-blue-600 mb-2">{t("test.results.test_submitted")}</h1>
+							<h1 className="text-3xl font-bold text-blue-600 mb-2">{t("test.results.submitted")}</h1>
 							<p className="text-gray-600">{t("test.results.being_graded")}</p>
 						</div>
 					)}
@@ -89,7 +92,7 @@ function TestResultsPage() {
 				{isGraded && (
 					<div className="grid grid-cols-3 gap-6 mt-8">
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
-							<div className="text-3xl font-bold text-indigo-600">{attempt.score.toFixed(1)}%</div>
+							<div className="text-3xl font-bold text-indigo-600">{score.toFixed(1)}%</div>
 							<div className="text-sm text-gray-600 mt-1">{t("test.results.your_score")}</div>
 						</div>
 						<div className="text-center p-4 bg-gray-50 rounded-lg">
@@ -129,8 +132,8 @@ function TestResultsPage() {
 				)}
 			</div>
 
-			{/* Question Breakdown */}
-			{isGraded && attempt.answers && (
+			{/* Question Breakdown - Only show detailed breakdown for non-certificate tests */}
+			{isGraded && attempt.answers && !isCertificateTest && (
 				<div className="bg-white shadow-md rounded-lg p-6">
 					<h2 className="text-2xl font-bold mb-6">{t("test.results.question_breakdown")}</h2>
 					<div className="space-y-6">
@@ -152,7 +155,7 @@ function TestResultsPage() {
 									<div className="flex items-start justify-between mb-3">
 										<div className="flex-1">
 											<h3 className="font-semibold text-lg mb-2">
-												{t("test.results.question")} {index + 1}
+												{t("test.taking.question")} {index + 1}
 												{isCorrect !== null && (
 													isCorrect ? (
 														<FaCheckCircle className="inline-block ml-2 text-green-600" />
@@ -161,11 +164,13 @@ function TestResultsPage() {
 													)
 												)}
 											</h3>
-											<p className="text-gray-800">{question.questionText}</p>
+											<div className="text-gray-800 prose prose-sm max-w-none">
+												<ReactMarkdown>{question.questionText}</ReactMarkdown>
+											</div>
 										</div>
 										<div className="text-right ml-4">
 											<div className="text-sm font-medium">
-												{answer.pointsEarned}/{question.points} {t("test.results.pts")}
+												{answer.pointsEarned}/{question.points} {t("test.taking.pts")}
 											</div>
 										</div>
 									</div>
@@ -185,7 +190,7 @@ function TestResultsPage() {
 												</div>
 											)}
 											{question.questionType === "true_false" && (
-												<div>{answer.userAnswer ? t("test.results.true") : t("test.results.false")}</div>
+												<div>{answer.userAnswer ? t("test.taking.true") : t("test.taking.false")}</div>
 											)}
 											{question.questionType === "short_answer" && (
 												<div className="whitespace-pre-wrap">{answer.userAnswer || t("test.results.no_answer")}</div>
@@ -209,7 +214,7 @@ function TestResultsPage() {
 													</div>
 												)}
 												{question.questionType === "true_false" && (
-													<div>{question.correctAnswer ? t("test.results.true") : t("test.results.false")}</div>
+													<div>{question.correctAnswer ? t("test.taking.true") : t("test.taking.false")}</div>
 												)}
 											</div>
 										</div>
@@ -233,6 +238,23 @@ function TestResultsPage() {
 								</div>
 							);
 						})}
+					</div>
+				</div>
+			)}
+
+			{/* Certificate Test Summary - Show limited info for certificate tests */}
+			{isGraded && isCertificateTest && (
+				<div className="bg-white shadow-md rounded-lg p-6">
+					<h2 className="text-2xl font-bold mb-6">{t("test.results.test_summary", { defaultValue: "Test Summary" })}</h2>
+					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+						<p className="text-blue-800">
+							{t("test.results.certificate_test_note", {
+								defaultValue: "This is a certificate test. Detailed answers are not shown to maintain the integrity of the certification process."
+							})}
+						</p>
+					</div>
+					<div className="mt-4 text-gray-600">
+						<p>{t("test.results.questions_answered", { count: attempt.answers?.length || 0, defaultValue: `You answered ${attempt.answers?.length || 0} questions.` })}</p>
 					</div>
 				</div>
 			)}

@@ -14,14 +14,18 @@ import CoursePage from "./components/CoursePage";
 import PrivateRoute from "./components/PrivateRoute"; // Protects routes needing login
 import ProfilePage from "./components/ProfilePage";
 import ResetPasswordPage from "./components/ResetPasswordPage";
+import ChangePasswordPage from "./components/ChangePasswordPage";
 import NotFoundPage from "./components/NotFoundPage";
 import AuthCallbackPage from "./components/AuthCallbackPage";
 import TestTakingPage from "./components/TestTakingPage";
 import TestResultsPage from "./components/TestResultsPage";
 import CertificatesPage from "./components/CertificatesPage";
 import CertificateValidationPage from "./components/CertificateValidationPage";
+import CertificateViewPage from "./components/CertificateViewPage";
 import TeacherApplicationPage from "./components/TeacherApplicationPage";
 import WalletPage from "./components/WalletPage";
+import PromocodePage from "./components/PromocodePage";
+import PackagesPage from "./components/PackagesPage";
 import { AuthProvider } from "./contexts/AuthContext"; // Import AuthProvider
 
 // Teacher Portal Components
@@ -30,6 +34,9 @@ import TeacherDashboard from "./components/teacher-portal/TeacherDashboard";
 import CourseManagement from "./components/teacher-portal/CourseManagement";
 import CourseForm from "./components/teacher-portal/CourseForm";
 import LessonManagement from "./components/teacher-portal/LessonManagement";
+import TestManagement from "./components/teacher-portal/TestManagement";
+import QuestionManagement from "./components/teacher-portal/QuestionManagement";
+import TestGrading from "./components/teacher-portal/TestGrading";
 import BookingManagement from "./components/teacher-portal/BookingManagement";
 import AvailabilityScheduler from "./components/teacher-portal/AvailabilityScheduler";
 
@@ -51,10 +58,14 @@ function App() {
 					{/* OAuth Callback Route */}
 					<Route path="/auth/callback" element={<AuthCallbackPage />} />
 
-					{/* --- Certificate Validation (Public) --- */}
+					{/* --- Certificate Routes (Public) --- */}
 					<Route
 						path="/certificates/validate"
 						element={<CertificateValidationPage />}
+					/>
+					<Route
+						path="/certificates/:certificateId"
+						element={<CertificateViewPage />}
 					/>
 
 					{/* --- Private Routes (Require Login) --- */}
@@ -68,6 +79,7 @@ function App() {
 							<Route path="/my-bookings" element={<MyBookingsPage />} />
 							<Route path="/course/:courseId" element={<CoursePage />} />
 							<Route path="/profile" element={<ProfilePage />} />
+							<Route path="/change-password" element={<ChangePasswordPage />} />
 							{/* Test and Certificate Routes */}
 							<Route path="/tests/:testId" element={<TestTakingPage />} />
 							<Route
@@ -77,6 +89,10 @@ function App() {
 							<Route path="/certificates" element={<CertificatesPage />} />
 							{/* Wallet */}
 							<Route path="/wallet" element={<WalletPage />} />
+							{/* Promocode */}
+							<Route path="/promocode" element={<PromocodePage />} />
+							{/* Packages */}
+							<Route path="/packages" element={<PackagesPage />} />
 							{/* Teacher Application */}
 							<Route
 								path="/apply-teacher"
@@ -98,6 +114,18 @@ function App() {
 							<Route
 								path="/teacher/courses/:courseId/lessons"
 								element={<LessonManagement />}
+							/>
+							<Route
+								path="/teacher/courses/:courseId/tests"
+								element={<TestManagement />}
+							/>
+							<Route
+								path="/teacher/courses/:courseId/tests/:testId/questions"
+								element={<QuestionManagement />}
+							/>
+							<Route
+								path="/teacher/courses/:courseId/tests/:testId/grading"
+								element={<TestGrading />}
 							/>
 							<Route path="/teacher/bookings" element={<BookingManagement />} />
 							<Route

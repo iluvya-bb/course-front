@@ -10,6 +10,7 @@ import {
   FaUsers,
   FaBook,
   FaSearch,
+  FaClipboardList,
 } from "react-icons/fa";
 import API from "../../services/api";
 import { useAuth } from "../../contexts/AuthContext";
@@ -44,9 +45,8 @@ const CourseManagement = () => {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const response = await API.getCoursesTeacher({
-        teacherId: user.teacherProfile?.id,
-      });
+      // Backend automatically filters to teacher's own courses based on logged-in user
+      const response = await API.getCoursesTeacher();
       const coursesData = response.data.data || [];
       setCourses(coursesData);
       setFilteredCourses(coursesData);
@@ -204,13 +204,20 @@ const CourseManagement = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Link
                     to={`/teacher/courses/${course.id}/lessons`}
                     className="flex items-center justify-center gap-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all"
                   >
                     <FaEye className="text-xs" />
                     <span>{t("teacher.courses.lessons")}</span>
+                  </Link>
+                  <Link
+                    to={`/teacher/courses/${course.id}/tests`}
+                    className="flex items-center justify-center gap-1 px-3 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-medium transition-all"
+                  >
+                    <FaClipboardList className="text-xs" />
+                    <span>{t("teacher.courses.tests")}</span>
                   </Link>
                   <Link
                     to={`/teacher/courses/${course.id}/edit`}

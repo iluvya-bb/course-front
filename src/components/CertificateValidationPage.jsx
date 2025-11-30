@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import API from "../services/api";
-import { FaSearch, FaCheckCircle, FaTimesCircle, FaTrophy, FaCertificate } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import API, { API_URL } from "../services/api";
+import { FaSearch, FaCheckCircle, FaTimesCircle, FaTrophy, FaCertificate, FaDownload, FaSpinner, FaEye, FaTimes } from "react-icons/fa";
 
 function CertificateValidationPage() {
 	const { t } = useTranslation();
@@ -11,6 +11,8 @@ function CertificateValidationPage() {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 	const [searched, setSearched] = useState(false);
+	const [downloadingId, setDownloadingId] = useState(null);
+	const [viewingCert, setViewingCert] = useState(null);
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
@@ -37,6 +39,40 @@ function CertificateValidationPage() {
 			month: "long",
 			day: "numeric",
 		});
+	};
+
+	const getPdfUrl = (cert) => {
+		if (cert?.pdfUrl) {
+			return `${API_URL}/${cert.pdfUrl}`;
+		}
+		return null;
+	};
+
+	const handleDownloadPDF = async (certificateId) => {
+		setDownloadingId(certificateId);
+		try {
+			const response = await API.downloadCertificatePDF(certificateId);
+			const blob = new Blob([response.data], { type: "application/pdf" });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `certificate-${certificateId}.pdf`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		} catch (err) {
+			console.error("Failed to download certificate PDF:", err);
+			if (err.response?.status === 401) {
+				setError(t("certificates.view.login_required", { defaultValue: "Please login to download" }));
+			} else if (err.response?.status === 403) {
+				setError(t("certificates.view.not_authorized", { defaultValue: "You are not authorized to download this certificate" }));
+			} else {
+				setError(t("certificates.page.download_failed", { defaultValue: "Failed to download certificate" }));
+			}
+		} finally {
+			setDownloadingId(null);
+		}
 	};
 
 	return (
@@ -382,6 +418,48 @@ function CertificateValidationPage() {
 													</div>
 												</motion.div>
 											)}
+
+											{/* View & Download buttons */}
+											{cert.valid && (
+												<div className="mt-6 flex gap-3">
+													{getPdfUrl(cert) && (
+														<motion.button
+															whileHover={{ scale: 1.02 }}
+															whileTap={{ scale: 0.98 }}
+															onClick={() => setViewingCert(cert)}
+															className="flex-1 py-3 bg-gradient-to-r from-brand-lime to-green-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl flex items-center justify-center gap-2 transition-all"
+															style={{
+																boxShadow: "3px 3px 0px #22c55e",
+															}}
+														>
+															<FaEye />
+															{t("certificates.page.view", { defaultValue: "View" })}
+														</motion.button>
+													)}
+													<motion.button
+														whileHover={{ scale: 1.02 }}
+														whileTap={{ scale: 0.98 }}
+														onClick={() => handleDownloadPDF(cert.certificateId)}
+														disabled={downloadingId === cert.certificateId}
+														className={`${getPdfUrl(cert) ? "flex-1" : "w-full"} py-3 bg-gradient-to-r from-brand-lavender to-brand-coral text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all`}
+														style={{
+															boxShadow: "3px 3px 0px #7776bc",
+														}}
+													>
+														{downloadingId === cert.certificateId ? (
+															<>
+																<FaSpinner className="animate-spin" />
+																{t("certificates.page.downloading", { defaultValue: "Downloading..." })}
+															</>
+														) : (
+															<>
+																<FaDownload />
+																{t("certificates.page.download", { defaultValue: "Download" })}
+															</>
+														)}
+													</motion.button>
+												</div>
+											)}
 										</motion.div>
 									))}
 								</div>
@@ -390,6 +468,64 @@ function CertificateValidationPage() {
 					</motion.div>
 				)}
 			</div>
+
+			{/* PDF Viewer Modal */}
+			<AnimatePresence>
+				{viewingCert && getPdfUrl(viewingCert) && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+						onClick={() => setViewingCert(null)}
+					>
+						<motion.div
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.9, opacity: 0 }}
+							className="relative w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden"
+							onClick={(e) => e.stopPropagation()}
+						>
+							{/* Modal Header */}
+							<div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-r from-brand-lavender to-brand-coral text-white">
+								<h3 className="font-bold text-lg truncate pr-4">
+									{viewingCert.courseName} - {t("certificates.page.certificate_preview", { defaultValue: "Certificate Preview" })}
+								</h3>
+								<div className="flex items-center gap-2 flex-shrink-0">
+									<motion.button
+										whileHover={{ scale: 1.1 }}
+										whileTap={{ scale: 0.9 }}
+										onClick={() => handleDownloadPDF(viewingCert.certificateId)}
+										disabled={downloadingId === viewingCert.certificateId}
+										className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+										title={t("certificates.page.download", { defaultValue: "Download" })}
+									>
+										{downloadingId === viewingCert.certificateId ? (
+											<FaSpinner className="animate-spin" />
+										) : (
+											<FaDownload />
+										)}
+									</motion.button>
+									<motion.button
+										whileHover={{ scale: 1.1 }}
+										whileTap={{ scale: 0.9 }}
+										onClick={() => setViewingCert(null)}
+										className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+									>
+										<FaTimes />
+									</motion.button>
+								</div>
+							</div>
+							{/* PDF Iframe */}
+							<iframe
+								src={getPdfUrl(viewingCert)}
+								className="w-full h-full pt-14"
+								title="Certificate PDF"
+							/>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }

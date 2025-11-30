@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import API from "../services/api";
-import { FaTrophy, FaDownload, FaCheckCircle } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
+import API, { API_URL } from "../services/api";
+import { FaTrophy, FaDownload, FaCheckCircle, FaSpinner, FaEye, FaTimes } from "react-icons/fa";
 
 function CertificatesPage() {
 	const { t } = useTranslation();
 	const [certificates, setCertificates] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [downloadingId, setDownloadingId] = useState(null);
+	const [viewingCert, setViewingCert] = useState(null);
 
 	useEffect(() => {
 		fetchCertificates();
@@ -34,6 +37,34 @@ function CertificatesPage() {
 			month: "long",
 			day: "numeric",
 		});
+	};
+
+	const handleDownloadPDF = async (certificateId) => {
+		setDownloadingId(certificateId);
+		try {
+			const response = await API.downloadCertificatePDF(certificateId);
+			const blob = new Blob([response.data], { type: "application/pdf" });
+			const url = window.URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.href = url;
+			link.download = `certificate-${certificateId}.pdf`;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			window.URL.revokeObjectURL(url);
+		} catch (err) {
+			console.error("Failed to download certificate PDF:", err);
+			setError(t("certificates.page.download_failed"));
+		} finally {
+			setDownloadingId(null);
+		}
+	};
+
+	const getPdfUrl = (cert) => {
+		if (cert?.pdfUrl) {
+			return `${API_URL}/${cert.pdfUrl}`;
+		}
+		return null;
 	};
 
 	if (loading) {
@@ -126,17 +157,35 @@ function CertificatesPage() {
 								</div>
 							) : (
 								<div className="space-y-2">
-									{cert.pdfUrl && (
-										<a
-											href={cert.pdfUrl}
-											target="_blank"
-											rel="noopener noreferrer"
-											className="flex items-center justify-center w-full px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm"
+									{/* View & Download buttons */}
+									<div className="flex gap-2">
+										{getPdfUrl(cert) && (
+											<button
+												onClick={() => setViewingCert(cert)}
+												className="flex items-center justify-center flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+											>
+												<FaEye className="mr-1" />
+												{t("certificates.page.view", { defaultValue: "View" })}
+											</button>
+										)}
+										<button
+											onClick={() => handleDownloadPDF(cert.certificateId)}
+											disabled={downloadingId === cert.certificateId}
+											className={`flex items-center justify-center ${getPdfUrl(cert) ? "flex-1" : "w-full"} px-3 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm disabled:opacity-50 disabled:cursor-not-allowed`}
 										>
-											<FaDownload className="mr-2" />
-											{t("certificates.page.download_pdf")}
-										</a>
-									)}
+											{downloadingId === cert.certificateId ? (
+												<>
+													<FaSpinner className="animate-spin mr-1" />
+													{t("certificates.page.downloading")}
+												</>
+											) : (
+												<>
+													<FaDownload className="mr-1" />
+													{t("certificates.page.download", { defaultValue: "Download" })}
+												</>
+											)}
+										</button>
+									</div>
 									<Link
 										to={`/certificates/${cert.certificateId}`}
 										className="flex items-center justify-center w-full px-4 py-2 bg-white border border-yellow-600 text-yellow-700 rounded-md hover:bg-yellow-50 text-sm"
@@ -149,6 +198,60 @@ function CertificatesPage() {
 					))}
 				</div>
 			)}
+
+			{/* PDF Viewer Modal */}
+			<AnimatePresence>
+				{viewingCert && getPdfUrl(viewingCert) && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+						onClick={() => setViewingCert(null)}
+					>
+						<motion.div
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.9, opacity: 0 }}
+							className="relative w-full max-w-5xl h-[90vh] bg-white rounded-2xl shadow-2xl overflow-hidden"
+							onClick={(e) => e.stopPropagation()}
+						>
+							{/* Modal Header */}
+							<div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
+								<h3 className="font-bold text-lg">
+									{viewingCert.courseName} - {t("certificates.page.certificate_preview", { defaultValue: "Certificate Preview" })}
+								</h3>
+								<div className="flex items-center gap-2">
+									<button
+										onClick={() => handleDownloadPDF(viewingCert.certificateId)}
+										disabled={downloadingId === viewingCert.certificateId}
+										className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+										title={t("certificates.page.download", { defaultValue: "Download" })}
+									>
+										{downloadingId === viewingCert.certificateId ? (
+											<FaSpinner className="animate-spin" />
+										) : (
+											<FaDownload />
+										)}
+									</button>
+									<button
+										onClick={() => setViewingCert(null)}
+										className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
+									>
+										<FaTimes />
+									</button>
+								</div>
+							</div>
+							{/* PDF Iframe */}
+							<iframe
+								src={getPdfUrl(viewingCert)}
+								className="w-full h-full pt-14"
+								title="Certificate PDF"
+							/>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }

@@ -44,10 +44,42 @@ const SubscriptionModal = ({
 				</h2>
 
 				{/* Confirmation Message using actual course title */}
-				<p className="text-base-content/80 mb-6">
+				<p className="text-base-content/80 mb-4">
 					{t("subscribe_confirmation.message", { courseName: course.title })}{" "}
 					{/* Use course.title */}
 				</p>
+
+				{/* Price Display */}
+				{course.price != null && course.price > 0 && (
+					<div className="mb-6 p-4 bg-gradient-to-r from-brand-lavender/10 to-brand-coral/10 rounded-xl">
+						{course.saleInfo ? (
+							<div className="text-center">
+								<div className="flex items-center justify-center gap-3">
+									<span className="text-2xl font-black bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
+										₮{course.saleInfo.salePrice.toLocaleString()}
+									</span>
+									<span className="text-lg text-gray-400 line-through">
+										₮{course.price.toLocaleString()}
+									</span>
+								</div>
+								<div className="text-sm text-green-600 font-semibold mt-1">
+									{t("dashboard.save", { defaultValue: "Save" })} ₮{course.saleInfo.discount.toLocaleString()}!
+								</div>
+								{course.saleInfo.saleTitle && (
+									<div className="text-xs text-base-content/60 mt-1">
+										{course.saleInfo.saleTitle}
+									</div>
+								)}
+							</div>
+						) : (
+							<div className="text-center">
+								<span className="text-2xl font-black bg-gradient-to-r from-brand-lavender to-brand-coral bg-clip-text text-transparent">
+									₮{course.price.toLocaleString()}
+								</span>
+							</div>
+						)}
+					</div>
+				)}
 
 				{/* Display Error Message */}
 				{error && (
