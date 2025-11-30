@@ -31,10 +31,16 @@ const UserDropdown = ({ user, onLogout }) => {
 	const toggleDropdown = () => setIsOpen(!isOpen);
 	const handleLinkClick = () => setIsOpen(false);
 
-	// Construct avatar URL
-	const avatarUrl = user?.avatar
-		? `${API.defaults.baseURL}/${user.avatar}`
-		: null;
+	// Construct avatar URL - check if already absolute URL (e.g., Google profile images)
+	const getAvatarUrl = (avatar) => {
+		if (!avatar) return null;
+		if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+			return avatar;
+		}
+		return `${API.defaults.baseURL}/${avatar}`;
+	};
+
+	const avatarUrl = getAvatarUrl(user?.avatar);
 
 	return (
 		<div className="relative z-100" ref={dropdownRef}>

@@ -79,7 +79,16 @@ const SettingsPage = () => {
 	}, [user, t]); // Rerun if user changes
 
 	const isLoading = loadingWallet || loadingSubs; // Still use combined loading for initial page render
-	const avatarUrl = user?.avatar ? `${API_URL}/${user.avatar}` : null;
+
+	const getAvatarUrl = (avatar) => {
+		if (!avatar) return null;
+		if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+			return avatar;
+		}
+		return `${API_URL}/${avatar}`;
+	};
+
+	const avatarUrl = getAvatarUrl(user?.avatar);
 
 	const formatBalance = (balanceValue) => {
 		const numBalance = parseFloat(balanceValue);

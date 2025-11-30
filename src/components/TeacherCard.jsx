@@ -11,6 +11,15 @@ import { API_URL } from "../services/api";
 const TeacherCard = ({ teacher, selected, onClick }) => {
 	const { t } = useTranslation(["translation", "booking"]);
 
+	// Helper to construct avatar URL - check if already absolute URL
+	const getAvatarUrl = (avatar) => {
+		if (!avatar) return null;
+		if (avatar.startsWith("http://") || avatar.startsWith("https://")) {
+			return avatar;
+		}
+		return `${API_URL}/${avatar}`;
+	};
+
 	return (
 		<button
 			type="button"
@@ -26,7 +35,7 @@ const TeacherCard = ({ teacher, selected, onClick }) => {
 				<div className="flex-shrink-0">
 					{teacher.avatar ? (
 						<img
-							src={`${API_URL}/${teacher.avatar}`}
+							src={getAvatarUrl(teacher.avatar)}
 							alt={teacher.name}
 							className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
 						/>

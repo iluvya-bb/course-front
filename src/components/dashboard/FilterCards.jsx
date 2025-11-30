@@ -60,6 +60,15 @@ const FilterCards = ({
 		return obj || "";
 	};
 
+	// Helper to construct image URL - check if already absolute URL (e.g., Google profile images)
+	const getImageUrl = (imageUrl) => {
+		if (!imageUrl) return null;
+		if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+			return imageUrl;
+		}
+		return `${API_URL}/${imageUrl}`;
+	};
+
 	const clearFilters = () => {
 		onSubjectChange("");
 		onTeacherChange("");
@@ -259,7 +268,7 @@ const FilterCards = ({
 													<div className="h-20 relative overflow-hidden">
 														{subject.bannerImage ? (
 															<img
-																src={`${API_URL}/${subject.bannerImage}`}
+																src={getImageUrl(subject.bannerImage)}
 																alt={getName(subject.name)}
 																className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
 															/>
@@ -405,7 +414,7 @@ const FilterCards = ({
 													<div className="relative mx-auto w-16 h-16 mb-3">
 														{teacher.avatar ? (
 															<img
-																src={`${API_URL}/${teacher.avatar}`}
+																src={getImageUrl(teacher.avatar)}
 																alt={teacher.name}
 																className="w-full h-full rounded-full object-cover border-2 border-white shadow-lg"
 															/>
